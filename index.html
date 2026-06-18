@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOZN FraudLens - Real-Time Fraud Triage & Threshold Intelligence Console</title>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body class="dark-theme">
+    <!-- App Container -->
+    <div class="app-layout">
+        
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-logo-container">
+                <div class="logo-icon"></div>
+                <div class="brand-details">
+                    <h1 class="brand-title">MOZN <span class="accent-text">FraudLens</span></h1>
+                    <p class="brand-subtitle">Real-Time Fraud Triage & Threshold Intelligence Console</p>
+                </div>
+            </div>
+            <div class="header-meta">
+                <div class="meta-item">
+                    <span class="meta-label">Market Focus:</span>
+                    <span class="meta-val">GCC (KSA/UAE/KW)</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Compliance Norms:</span>
+                    <span class="meta-val highlight-green">SAMA & CBUAE Guardrails</span>
+                </div>
+                <div class="meta-item analyst-badge">
+                    <span class="avatar">SA</span>
+                    <span id="analyst-name">Analyst: Saurabh C.</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace Grid -->
+        <main class="main-content">
+            
+            <!-- Left Panel: Alert Triage Queue -->
+            <section class="panel alert-queue-panel">
+                <div class="panel-header">
+                    <div class="title-with-badge">
+                        <h2 class="panel-title">Alert Triage Queue</h2>
+                        <span class="badge badge-red" id="active-alert-count">0 Alerts</span>
+                    </div>
+                    <div class="queue-sort-info">
+                        <span class="sort-icon">⇅</span> Priority Sorted: <span class="highlight-text">Score × SLA Urgency</span>
+                    </div>
+                </div>
+                
+                <!-- Quick Filter / Batch Batch Controls -->
+                <div class="queue-filters">
+                    <button class="filter-btn active" id="filter-all">All Layers</button>
+                    <button class="filter-btn" id="filter-device">Device</button>
+                    <button class="filter-btn" id="filter-behavioral">Behavioral</button>
+                    <button class="filter-btn" id="filter-transaction">Transaction</button>
+                </div>
+
+                <!-- Scrollable Alert List -->
+                <div class="alert-list-container" id="alert-list">
+                    <!-- Cards will be dynamically injected here -->
+                </div>
+            </section>
+
+            <!-- Right Panel: Threshold Intelligence & Business Impact Simulator -->
+            <section class="panel simulator-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Threshold Intelligence & Simulator</h2>
+                    <span class="badge badge-blue">Risk Ops Panel</span>
+                </div>
+
+                <!-- Simulation CSV Uploader -->
+                <div class="simulation-data-loader">
+                    <div class="uploader-header">
+                        <span class="uploader-title">Simulation Data Source</span>
+                        <a href="sample_transactions.csv" download class="template-btn" id="download-template-btn">💾 Template CSV</a>
+                    </div>
+                    <div class="uploader-controls">
+                        <label for="csv-file-input" class="custom-file-upload" id="csv-label">
+                            <span class="upload-icon">📤</span> Choose Anonymized Bank CSV...
+                        </label>
+                        <input type="file" id="csv-file-input" accept=".csv">
+                        <span class="data-source-status" id="data-source-indicator">Using Default 30-Day GCC Profile Data</span>
+                    </div>
+                    <div class="error-banner hidden" id="csv-error-message"></div>
+                </div>
+
+                <!-- Sliders Dashboard -->
+                <div class="sliders-container">
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-name">Master Composite Risk Threshold</span>
+                            <span class="slider-value" id="master-slider-val">75</span>
+                        </div>
+                        <input type="range" min="0" max="100" value="75" class="custom-slider" id="master-threshold-slider">
+                        <div class="slider-labels">
+                            <span>Catch All (0)</span>
+                            <span>Highly Selective (100)</span>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Sliders Accordion -->
+                    <div class="accordion-item">
+                        <button class="accordion-header" id="accordion-trigger-btn">
+                            <span>🛠️ Advanced Layer Thresholds (Fine-Tuning)</span>
+                            <span class="accordion-chevron" id="accordion-chevron">▶</span>
+                        </button>
+                        <div class="accordion-content hidden" id="accordion-panel">
+                            <div class="slider-group sub-slider">
+                                <div class="slider-header">
+                                    <span class="slider-name">Device Layer Score Cutoff</span>
+                                    <span class="slider-value" id="device-slider-val">70</span>
+                                </div>
+                                <input type="range" min="0" max="100" value="70" class="custom-slider" id="device-threshold-slider">
+                            </div>
+                            <div class="slider-group sub-slider">
+                                <div class="slider-header">
+                                    <span class="slider-name">Behavioral Layer Score Cutoff</span>
+                                    <span class="slider-value" id="behavioral-slider-val">75</span>
+                                </div>
+                                <input type="range" min="0" max="100" value="75" class="custom-slider" id="behavioral-threshold-slider">
+                            </div>
+                            <div class="slider-group sub-slider">
+                                <div class="slider-header">
+                                    <span class="slider-name">Transaction Layer Score Cutoff</span>
+                                    <span class="slider-value" id="transaction-slider-val">80</span>
+                                </div>
+                                <input type="range" min="0" max="100" value="80" class="custom-slider" id="transaction-threshold-slider">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metrics Dashboard Grid -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <span class="metric-title">True Positive Rate (Catch)</span>
+                        <div class="metric-value-container">
+                            <span class="metric-value" id="metric-tpr">0.0%</span>
+                        </div>
+                        <p class="metric-desc">Actual fraud events caught by the active threshold</p>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">False Positive Rate</span>
+                        <div class="metric-value-container">
+                            <span class="metric-value" id="metric-fpr">0.0%</span>
+                        </div>
+                        <p class="metric-desc">Legitimate transactions flagged in review</p>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">Estimated Monthly Fraud Loss</span>
+                        <div class="metric-value-container">
+                            <span class="metric-value" id="metric-fraud-loss">0 SAR</span>
+                        </div>
+                        <p class="metric-desc">Cost of fraud transactions slipping below threshold</p>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">False Decline Cost (Friction)</span>
+                        <div class="metric-value-container">
+                            <span class="metric-value" id="metric-decline-cost">0 SAR</span>
+                        </div>
+                        <p class="metric-desc">Legitimate volume locked due to false blocks</p>
+                    </div>
+                </div>
+
+                <!-- Recommendations & Guardrails -->
+                <div class="impact-insights">
+                    <div class="recommendation-box">
+                        <div class="rec-title">🤖 Threshold Recommendation Engine</div>
+                        <div class="rec-content" id="recommendation-content">
+                            Calculating optimal threshold...
+                        </div>
+                    </div>
+                    <div class="guardrail-alert hidden" id="guardrail-alert-box">
+                        <div class="alert-title">⚠️ Compliance Guardrail Warning</div>
+                        <div class="alert-content" id="guardrail-alert-content">
+                            Threshold selection violates regional guidelines.
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Panel: Audit Log & Triage History -->
+        <footer class="bottom-panel">
+            <div class="bottom-panel-section triage-history-section">
+                <div class="section-header">
+                    <h3>History & Triage Revision (Last 5 Mins)</h3>
+                    <span class="section-subtitle">Analysts can undo/edit decisions in this window</span>
+                </div>
+                <div class="history-list" id="triage-history-list">
+                    <!-- Dynamic processed alert rows -->
+                    <div class="empty-state-text" id="history-empty-state">No transactions triaged in this session yet.</div>
+                </div>
+            </div>
+            
+            <div class="bottom-panel-section compliance-log-section">
+                <div class="section-header">
+                    <h3>Compliance Audit Trail</h3>
+                    <button class="clear-log-btn" id="clear-audit-log-btn">🧹 Clear Local Log</button>
+                </div>
+                <div class="audit-log-terminal" id="audit-log-terminal">
+                    <!-- JSON / CSV rows of storage inserts -->
+                    <div class="terminal-row placeholder">Initializing audit ledger...</div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>

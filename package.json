@@ -1,0 +1,21 @@
+{
+  "name": "mozn-fraudlens-prototype",
+  "version": "1.0.0",
+  "description": "MOZN FraudLens: Real-Time Fraud Triage & Threshold Intelligence Console Prototype",
+  "main": "index.html",
+  "scripts": {
+    "dev": "http-server ./ -p 5173 -o"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "keywords": [
+    "fraud",
+    "triage",
+    "mozn",
+    "simulator"
+  ],
+  "author": "Saurabh Chawda",
+  "license": "ISC"
+}

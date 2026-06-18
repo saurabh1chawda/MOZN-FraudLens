@@ -1,0 +1,78 @@
+# MOZN FraudLens: Real-Time Fraud Triage & Threshold Intelligence Console
+
+MOZN FraudLens is an operations-facing risk triage and threshold simulation console designed specifically for fraud operations teams at GCC financial institutions (Saudi Arabia, UAE, Kuwait). 
+
+Surfacing MOZN’s machine learning layer signals in a clean, triageable interface, FraudLens helps fraud analysts process transactions quickly and provides risk managers with business-framed cost metrics to tune live transaction rules.
+
+---
+
+## 🎨 Key Features
+
+1. **Signal-Attributed Alert Queue**: 
+   * Sleek dark-mode interface designed with modern glassmorphism.
+   * Priority queue sorting that dynamic-balances Risk Score and SLA urgency.
+   * Tooltip attributions displaying exactly *which* signals triggered the card (e.g. Device Anomaly, IP Location Spoofing).
+   * **Trigger Reasons**: Explicit badges displaying which layer threshold forced the alert (composite master vs. specific custom cutoffs).
+   * **Value-Based SLA Allocation**:
+     * Transactions < 1,000 currency units: **2 minutes (120s)**
+     * Transactions 1,000 to 10,000 currency units: **5 minutes (300s)**
+     * Transactions > 10,000 currency units: **10 minutes (600s)**
+   * **Web Audio Breach Alarm**: Soft double-beep warning played via Web Audio API the instant a countdown timer breaches `0`.
+   * **Scroll Position Memory**: Preserves vertical scroll position on alert triage actions to prevent container jump.
+   * **Triage History & Undo (5 Mins)**: Allows analysts to undo triage decisions within 5 minutes, restoring the card and removing log database entries.
+
+2. **Threshold Intelligence & Business Impact Simulator**:
+   * Interactive master threshold slider (0-100) and advanced accordion sliders for Device, Behavioral, and Transaction layers.
+   * **Dynamic Currency Adaptability**: Analyzes uploaded CSV files to discover the dominant currency code (SAR vs. AED) and updates metric panels automatically.
+   * **Live Client-Side Metrics**: Calculates True Positive Rate (TPR), False Positive Rate (FPR), Monthly Fraud Loss, and False Decline Cost (Friction) instantly.
+   * **Compliance Guardrails**: Warns managers if the False Positive Rate exceeds CBUAE Consumer Protection guidelines (>30%).
+   * **Threshold Recommendation Engine**: Computes the mathematically optimal composite score to minimize total operational and leakage costs.
+
+3. **Local Storage Compliance Audit Trail**:
+   * Simulates a SQL database table `fraud_audit_log` inside `localStorage`.
+   * Log Terminal prints SQL `INSERT` and `DELETE` events live during analyst operations.
+
+---
+
+## 🛠️ Technology Stack
+
+* **Frontend**: HTML5, Vanilla CSS3 (Custom properties, grid layout, animations), Vanilla JavaScript (ES6+).
+* **Mock Database**: Browser `localStorage` APIs.
+* **Audio Alerts**: Web Audio API (No external asset dependency).
+* **Dev Server**: `http-server` (NodeJS-based).
+
+---
+
+## 🚀 Setup & Installation
+
+Follow these steps to run the interactive prototype locally:
+
+### Prerequisites
+Make sure you have [Node.js](https://nodejs.org/) installed on your machine.
+
+### Installation
+1. Clone or download the repository into your workspace directory.
+2. Open terminal in the project directory and run:
+   ```bash
+   npm install
+   ```
+
+### Running Locally
+To launch the development server, run:
+```bash
+npm run dev
+```
+The console will start at `http://localhost:5173`. Open this URL in any modern browser.
+
+---
+
+## 📁 Repository Structure
+
+```
+├── index.html               # Main dashboard UI structure
+├── index.css                # Visual design system, dark-theme layout & transitions
+├── app.js                   # Application state engine, timers, calculations & CSV parser
+├── sample_transactions.csv  # Pre-defined transaction profile data for simulator uploader
+├── package.json             # NPM dependencies & scripts
+└── package-lock.json        # Locked dependency tree
+```
