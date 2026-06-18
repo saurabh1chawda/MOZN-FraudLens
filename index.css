@@ -1602,36 +1602,8 @@ input:checked + .switch-slider:before {
     box-shadow: 0 0 8px rgba(59, 130, 246, 0.1);
 }
 
-/* Tradeoff Chart Box */
-.tradeoff-chart-box {
-    margin-top: 15px;
-    background: rgba(0, 0, 0, 0.15);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 12px;
-}
-
-.chart-title {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-    font-family: var(--font-heading);
-}
-
-.canvas-wrapper {
-    position: relative;
-    width: 100%;
-}
-
-canvas {
-    display: block;
-    width: 100%;
-    background: transparent;
-}
-
-/* Drift Analytics Card */
+/* Tradeoff Chart Box & Drift Analytics Card */
+.tradeoff-chart-box,
 .drift-analytics-card {
     background: rgba(22, 30, 49, 0.55);
     border: 1px solid var(--border-color);
@@ -1643,17 +1615,31 @@ canvas {
     margin-top: 15px;
 }
 
-.drift-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
+.chart-title,
 .drift-title {
+    display: block;
     font-size: 12px;
     font-weight: 600;
     color: var(--text-primary);
     font-family: var(--font-heading);
+}
+
+.canvas-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 220px;
+    background: transparent;
+}
+
+.drift-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .drift-alert-badge {
