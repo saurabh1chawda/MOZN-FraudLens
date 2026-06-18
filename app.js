@@ -32,6 +32,9 @@ let activeFilter = "all";
 let slaTimerInterval = null;
 let selectedAlertId = null; // Track currently selected transaction ID for detail pane
 let globalFpr = 0; // Track the False Positive Rate globally for compliance checks
+let activeSort = "priority"; // Track active queue sorting criteria
+let loggedDriftWarning = false; // Prevent duplicate warnings in the compliance terminal
+
 
 // XAI Plain-Language Translation Engine
 const XaiFeatureMap = {
@@ -277,11 +280,40 @@ function sortAndRenderQueue() {
         alertItem.priority = alertItem.risk_score * urgencyMultiplier;
     });
 
-    // Sort descending by priority
-    activeAlertsQueue.sort((a, b) => b.priority - a.priority);
+    // Sort based on active criteria
+    if (activeSort === "priority") {
+        activeAlertsQueue.sort((a, b) => b.priority - a.priority);
+    } else if (activeSort === "score") {
+        activeAlertsQueue.sort((a, b) => b.risk_score - a.risk_score);
+    } else if (activeSort === "sla") {
+        activeAlertsQueue.sort((a, b) => a.sla_remaining - b.sla_remaining);
+    } else if (activeSort === "layer") {
+        activeAlertsQueue.sort((a, b) => {
+            const layerComp = a.layer.localeCompare(b.layer);
+            if (layerComp !== 0) return layerComp;
+            return b.risk_score - a.risk_score;
+        });
+    }
 
     renderQueueHTML();
 }
+
+// Handler for queue sorting pill clicks
+window.changeQueueSort = function(criteria) {
+    activeSort = criteria;
+
+    const buttons = document.querySelectorAll("#queue-sorting-controls .sort-pill-btn");
+    buttons.forEach(btn => {
+        if (btn.id === `sort-${criteria}`) {
+            btn.classList.add("active");
+        } else {
+            btn.classList.remove("active");
+        }
+    });
+
+    sortAndRenderQueue();
+    writeToAuditLog(`Queue sorted by: ${criteria.toUpperCase()}`, "success");
+};
 
 // Get SAMA / CBUAE compliant GCC Merchant Context dynamically based on category
 function getGccMerchantContext(category, currency) {
@@ -777,6 +809,633 @@ function updateSimulationMetrics() {
 
     // Execute compliance policy validation checks
     runComplianceChecks();
+
+    // Render tradeoff curve and drift analytics canvases
+    const tradeoffCanvas = document.getElementById("tradeoff-curve-canvas");
+    if (tradeoffCanvas) {
+        drawTradeoffCurve(tradeoffCanvas);
+    }
+    const driftCanvas = document.getElementById("drift-telemetry-canvas");
+    if (driftCanvas) {
+        drawDriftTelemetry(driftCanvas, tpr);
+    }
+}
+
+// Precompute TPR & FPR points for Tradeoff Curve
+function getCurveCoordinates(dataset) {
+    const pointsCount = 15;
+    const points = [];
+    for (let i = 0; i < pointsCount; i++) {
+        const t = Math.round(95 - (i * (95 - 10) / (pointsCount - 1)));
+        
+        let totalActualFraud = 0;
+        let caughtFraud = 0;
+        let totalLegitimate = 0;
+        let falsePositives = 0;
+
+        dataset.forEach(txn => {
+            const isFlagged = txn.risk_score >= t;
+            if (txn.is_fraud === 1) {
+                totalActualFraud++;
+                if (isFlagged) caughtFraud++;
+            } else {
+                totalLegitimate++;
+                if (isFlagged) falsePositives++;
+            }
+        });
+
+        const tpr = totalActualFraud > 0 ? (caughtFraud / totalActualFraud) : 0;
+        const fpr = totalLegitimate > 0 ? (falsePositives / totalLegitimate) : 0;
+        
+        points.push({ threshold: t, fpr, tpr });
+    }
+    return points;
+}
+
+// Set up Canvas backing store scaling for Retina screens
+function setupCanvasDpr(canvas, ctx) {
+    const dpr = window.devicePixelRatio || 1;
+    const displayWidth = canvas.clientWidth || canvas.getAttribute('width') || 300;
+    const displayHeight = canvas.clientHeight || canvas.getAttribute('height') || 150;
+    
+    if (canvas.width !== Math.round(displayWidth * dpr) || canvas.height !== Math.round(displayHeight * dpr)) {
+        canvas.width = displayWidth * dpr;
+        canvas.height = displayHeight * dpr;
+    }
+    
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+    return { width: displayWidth, height: displayHeight };
+}
+
+// Draw Precision-Recall Tradeoff Frontier Curve
+function drawTradeoffCurve(canvas) {
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const { width, height } = setupCanvasDpr(canvas, ctx);
+    ctx.clearRect(0, 0, width, height);
+
+    const padding = { top: 15, right: 15, bottom: 30, left: 40 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+
+    // 1. Draw Gridlines & Axes Ticks
+    ctx.lineWidth = 1;
+    ctx.font = "9px sans-serif";
+
+    // Y-axis gridlines (TPR: 0%, 25%, 50%, 75%, 100%)
+    const yTicks = [0, 0.25, 0.5, 0.75, 1];
+    yTicks.forEach(tick => {
+        const y = padding.top + (1 - tick) * chartHeight;
+        
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+        ctx.setLineDash([2, 2]);
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(padding.left + chartWidth, y);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`${Math.round(tick * 100)}%`, padding.left - 6, y);
+    });
+
+    // X-axis gridlines (FPR: 0%, 25%, 50%, 75%, 100%)
+    const xTicks = [0, 0.25, 0.5, 0.75, 1];
+    xTicks.forEach(tick => {
+        const x = padding.left + tick * chartWidth;
+
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+        ctx.setLineDash([2, 2]);
+        ctx.moveTo(x, padding.top);
+        ctx.lineTo(x, padding.top + chartHeight);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillText(`${Math.round(tick * 100)}%`, x, padding.top + chartHeight + 6);
+    });
+
+    // 2. Draw Axes Lines
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.setLineDash([]);
+    ctx.lineWidth = 1;
+    ctx.moveTo(padding.left, padding.top);
+    ctx.lineTo(padding.left, padding.top + chartHeight);
+    ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+    ctx.font = "bold 9px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("False Positive Rate (Friction)", padding.left + chartWidth / 2, padding.top + chartHeight + 20);
+
+    ctx.save();
+    ctx.translate(10, padding.top + chartHeight / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText("Catch Rate (TPR)", 0, 0);
+    ctx.restore();
+
+    // 3. Compute Curve Coordinates
+    const points = getCurveCoordinates(currentSimulationDataset);
+    const canvasPoints = points.map(pt => ({
+        threshold: pt.threshold,
+        fpr: pt.fpr,
+        tpr: pt.tpr,
+        x: padding.left + (pt.fpr * chartWidth),
+        y: padding.top + ((1 - pt.tpr) * chartHeight)
+    }));
+
+    // 4. Draw Bezier Curve
+    if (canvasPoints.length > 1) {
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(99, 102, 241, 0.85)";
+        ctx.lineWidth = 2.5;
+        
+        ctx.moveTo(canvasPoints[0].x, canvasPoints[0].y);
+        for (let i = 0; i < canvasPoints.length - 1; i++) {
+            const xc = (canvasPoints[i].x + canvasPoints[i + 1].x) / 2;
+            const yc = (canvasPoints[i].y + canvasPoints[i + 1].y) / 2;
+            ctx.quadraticCurveTo(canvasPoints[i].x, canvasPoints[i].y, xc, yc);
+        }
+        ctx.lineTo(canvasPoints[canvasPoints.length - 1].x, canvasPoints[canvasPoints.length - 1].y);
+        ctx.stroke();
+    }
+
+    // 5. Draw Optimal Threshold Dot
+    let optimalScore = 75;
+    let minCost = Infinity;
+    for (let s = 10; s <= 95; s += 5) {
+        let testMissedFraudVal = 0;
+        let testFalsePositiveCount = 0;
+        let testFalseDeclineVal = 0;
+
+        currentSimulationDataset.forEach(txn => {
+            let isFlagged = txn.risk_score >= s;
+            const amt = getAmountInActiveCurrency(txn);
+            if (txn.is_fraud === 1) {
+                if (!isFlagged) testMissedFraudVal += amt;
+            } else {
+                if (isFlagged) {
+                    testFalsePositiveCount++;
+                    testFalseDeclineVal += amt;
+                }
+            }
+        });
+
+        const analystCost = activeCurrency === "SAR" ? 150 : 150 * 0.98;
+        const totalCost = testMissedFraudVal + (testFalseDeclineVal * 0.1) + (testFalsePositiveCount * analystCost);
+        if (totalCost < minCost) {
+            minCost = totalCost;
+            optimalScore = s;
+        }
+    }
+
+    let optTotalActualFraud = 0;
+    let optCaughtFraud = 0;
+    let optTotalLegitimate = 0;
+    let optFalsePositives = 0;
+
+    currentSimulationDataset.forEach(txn => {
+        const isFlagged = txn.risk_score >= optimalScore;
+        if (txn.is_fraud === 1) {
+            optTotalActualFraud++;
+            if (isFlagged) optCaughtFraud++;
+        } else {
+            optTotalLegitimate++;
+            if (isFlagged) optFalsePositives++;
+        }
+    });
+
+    const optTpr = optTotalActualFraud > 0 ? (optCaughtFraud / optTotalActualFraud) : 0;
+    const optFpr = optTotalLegitimate > 0 ? (optFalsePositives / optTotalLegitimate) : 0;
+
+    const optX = padding.left + (optFpr * chartWidth);
+    const optY = padding.top + ((1 - optTpr) * chartHeight);
+
+    ctx.beginPath();
+    ctx.fillStyle = "rgba(16, 185, 129, 0.25)";
+    ctx.arc(optX, optY, 10, 0, 2 * Math.PI);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.fillStyle = "#10b981";
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.5;
+    ctx.arc(optX, optY, 6, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#10b981";
+    ctx.font = "bold 9px sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("Optimal", optX + 8, optY - 2);
+
+    // 6. Draw Pulsing Blue Dot (Current Master Threshold)
+    const masterCutoff = parseInt(masterSlider.value);
+    let curTotalActualFraud = 0;
+    let curCaughtFraud = 0;
+    let curTotalLegitimate = 0;
+    let curFalsePositives = 0;
+
+    currentSimulationDataset.forEach(txn => {
+        const isFlagged = txn.risk_score >= masterCutoff;
+        if (txn.is_fraud === 1) {
+            curTotalActualFraud++;
+            if (isFlagged) curCaughtFraud++;
+        } else {
+            curTotalLegitimate++;
+            if (isFlagged) curFalsePositives++;
+        }
+    });
+
+    const curTpr = curTotalActualFraud > 0 ? (curCaughtFraud / curTotalActualFraud) : 0;
+    const curFpr = curTotalLegitimate > 0 ? (curFalsePositives / curTotalLegitimate) : 0;
+
+    const curX = padding.left + (curFpr * chartWidth);
+    const curY = padding.top + ((1 - curTpr) * chartHeight);
+
+    ctx.beginPath();
+    ctx.fillStyle = "rgba(59, 130, 246, 0.25)";
+    ctx.arc(curX, curY, 12, 0, 2 * Math.PI);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(59, 130, 246, 0.85)";
+    ctx.lineWidth = 2;
+    ctx.arc(curX, curY, 7, 0, 2 * Math.PI);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffff";
+    ctx.arc(curX, curY, 4, 0, 2 * Math.PI);
+    ctx.fill();
+
+    // 7. Draw Hover Tooltip
+    if (canvas._hoverPoint) {
+        const pt = canvas._hoverPoint;
+
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.lineWidth = 1.5;
+        ctx.arc(pt.x, pt.y, 8, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        const tooltipText = `Threshold: ${pt.threshold} | Catch: ${Math.round(pt.tpr * 100)}% | FP: ${Math.round(pt.fpr * 100)}%`;
+        ctx.font = "10px sans-serif";
+        const textWidth = ctx.measureText(tooltipText).width;
+
+        let tooltipX = pt.x - textWidth / 2 - 6;
+        let tooltipY = pt.y - 25;
+
+        if (tooltipX < 5) tooltipX = 5;
+        if (tooltipX + textWidth + 12 > width) tooltipX = width - textWidth - 12;
+        if (tooltipY < 5) tooltipY = pt.y + 15;
+
+        ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+        ctx.strokeStyle = "rgba(99, 102, 241, 0.5)";
+        ctx.lineWidth = 1;
+
+        ctx.beginPath();
+        if (ctx.roundRect) {
+            ctx.roundRect(tooltipX, tooltipY, textWidth + 12, 18, 4);
+        } else {
+            ctx.rect(tooltipX, tooltipY, textWidth + 12, 18);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillText(tooltipText, tooltipX + 6, tooltipY + 9);
+    }
+}
+
+// Draw 90-Day Drift Timeline & Warn Badge Telemetry
+function drawDriftTelemetry(canvas, currentTprVal) {
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const { width, height } = setupCanvasDpr(canvas, ctx);
+    ctx.clearRect(0, 0, width, height);
+
+    const padding = { top: 15, right: 15, bottom: 25, left: 35 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+
+    const yTicks = [0, 0.5, 0.7, 1];
+    ctx.font = "9px sans-serif";
+    
+    yTicks.forEach(tick => {
+        const y = padding.top + (1 - tick) * chartHeight;
+        
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+        ctx.setLineDash([2, 2]);
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(padding.left + chartWidth, y);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`${Math.round(tick * 100)}%`, padding.left - 6, y);
+    });
+
+    const xTicks = [0, 30, 60, 90];
+    xTicks.forEach(tick => {
+        const x = padding.left + (tick / 90) * chartWidth;
+        
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+        ctx.setLineDash([2, 2]);
+        ctx.moveTo(x, padding.top);
+        ctx.lineTo(x, padding.top + chartHeight);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillText(`${tick}d`, x, padding.top + chartHeight + 5);
+    });
+
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.moveTo(padding.left, padding.top);
+    ctx.lineTo(padding.left, padding.top + chartHeight);
+    ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
+    ctx.stroke();
+
+    // 1. Draw SAMA Compliance Limit (70% dashed red line)
+    const y70 = padding.top + (1 - 0.70) * chartHeight;
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(239, 68, 68, 0.5)";
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 1.5;
+    ctx.moveTo(padding.left, y70);
+    ctx.lineTo(padding.left + chartWidth, y70);
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(239, 68, 68, 0.85)";
+    ctx.textAlign = "left";
+    ctx.fillText("SAMA Limit (70%)", padding.left + 5, y70 - 4);
+
+    // 2. Draw Active composite threshold line
+    const masterCutoff = parseInt(masterSlider.value);
+    const yThresh = padding.top + (1 - (masterCutoff / 100)) * chartHeight;
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(59, 130, 246, 0.6)";
+    ctx.lineWidth = 1.2;
+    ctx.moveTo(padding.left, yThresh);
+    ctx.lineTo(padding.left + chartWidth, yThresh);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(59, 130, 246, 0.9)";
+    ctx.fillText(`Active Threshold (${masterCutoff})`, padding.left + chartWidth - 110, yThresh - 4);
+
+    // 3. Compute 90-day Catch Rate (TPR) decay points
+    const points = [];
+    for (let d = 0; d <= 90; d += 5) {
+        const decay = 23 * (d / 90);
+        const noise = Math.sin(d / 4.0) * 1.5;
+        const val = Math.max(0, Math.min(100, currentTprVal - decay + noise));
+        points.push({
+            x: padding.left + (d / 90) * chartWidth,
+            y: padding.top + (1 - (val / 100)) * chartHeight,
+            val: val
+        });
+    }
+
+    const finalCatchRate = points[points.length - 1].val;
+    const isBreached = finalCatchRate < 70;
+
+    // 4. Draw Catch Rate decay curve path
+    ctx.beginPath();
+    ctx.strokeStyle = isBreached ? "rgba(245, 158, 11, 0.9)" : "rgba(16, 185, 129, 0.9)";
+    ctx.lineWidth = 2.5;
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 0; i < points.length - 1; i++) {
+        const xc = (points[i].x + points[i + 1].x) / 2;
+        const yc = (points[i].y + points[i + 1].y) / 2;
+        ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+    }
+    ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+    ctx.stroke();
+
+    // 5. Fill gradient under the curve
+    const grad = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartHeight);
+    grad.addColorStop(0, isBreached ? "rgba(245, 158, 11, 0.15)" : "rgba(16, 185, 129, 0.15)");
+    grad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    
+    ctx.beginPath();
+    ctx.fillStyle = grad;
+    ctx.moveTo(points[0].x, padding.top + chartHeight);
+    ctx.lineTo(points[0].x, points[0].y);
+    for (let i = 0; i < points.length - 1; i++) {
+        const xc = (points[i].x + points[i + 1].x) / 2;
+        const yc = (points[i].y + points[i + 1].y) / 2;
+        ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+    }
+    ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+    ctx.lineTo(points[points.length - 1].x, padding.top + chartHeight);
+    ctx.closePath();
+    ctx.fill();
+
+    // 6. Draw labels & trigger alarms
+    const badge = document.getElementById("drift-warning-badge");
+    const footerInfo = document.getElementById("drift-savings-roi");
+
+    if (isBreached) {
+        if (badge) badge.classList.remove("hidden");
+        if (footerInfo) {
+            footerInfo.classList.add("warning-drift");
+            
+            // Calculate savings ROI
+            let currentFalsePositiveCount = 0;
+            let currentFalseDeclineVal = 0;
+            let currentMissedFraudVal = 0;
+
+            currentSimulationDataset.forEach(txn => {
+                let isFlagged = false;
+                if (txn.risk_score >= masterCutoff) {
+                    isFlagged = true;
+                } else if (txn.layer === "Device" && txn.risk_score >= parseInt(deviceSlider.value)) {
+                    isFlagged = true;
+                } else if (txn.layer === "Behavioral" && txn.risk_score >= parseInt(behavioralSlider.value)) {
+                    isFlagged = true;
+                } else if (txn.layer === "Transaction" && txn.risk_score >= parseInt(transactionSlider.value)) {
+                    isFlagged = true;
+                }
+                
+                const amt = getAmountInActiveCurrency(txn);
+                if (txn.is_fraud === 1) {
+                    if (!isFlagged) currentMissedFraudVal += amt;
+                } else {
+                    if (isFlagged) {
+                        currentFalsePositiveCount++;
+                        currentFalseDeclineVal += amt;
+                    }
+                }
+            });
+
+            const analystCost = activeCurrency === "SAR" ? 150 : 150 * 0.98;
+            const totalCurrentCost = currentMissedFraudVal + (currentFalseDeclineVal * 0.1) + (currentFalsePositiveCount * analystCost);
+
+            let optimalScoreVal = 75;
+            let minCostVal = Infinity;
+            for (let s = 10; s <= 95; s += 5) {
+                let testMissedFraudVal = 0;
+                let testFalsePositiveCount = 0;
+                let testFalseDeclineVal = 0;
+
+                currentSimulationDataset.forEach(txn => {
+                    let isFlagged = txn.risk_score >= s;
+                    const amt = getAmountInActiveCurrency(txn);
+                    if (txn.is_fraud === 1) {
+                        if (!isFlagged) testMissedFraudVal += amt;
+                    } else {
+                        if (isFlagged) {
+                            testFalsePositiveCount++;
+                            testFalseDeclineVal += amt;
+                        }
+                    }
+                });
+
+                const totalCost = testMissedFraudVal + (testFalseDeclineVal * 0.1) + (testFalsePositiveCount * analystCost);
+                if (totalCost < minCostVal) {
+                    minCostVal = totalCost;
+                    optimalScoreVal = s;
+                }
+            }
+
+            const savings = Math.max(0, totalCurrentCost - minCostVal);
+            footerInfo.innerHTML = `⚠️ Model Catch Rate degraded below 70% SAMA limit. Optimal recalibration saves an estimated <strong>${formatCurrency(savings)}</strong> in leakage & friction.`;
+        }
+
+        if (!loggedDriftWarning) {
+            writeToAuditLog(`[WARNING] System Alert: Model Drift Detected (Catch Rate: ${finalCatchRate.toFixed(1)}% < SAMA 70% threshold). Recalibration suggested.`, "warning");
+            loggedDriftWarning = true;
+        }
+    } else {
+        if (badge) badge.classList.add("hidden");
+        if (footerInfo) {
+            footerInfo.classList.remove("warning-drift");
+            footerInfo.innerHTML = `Model Catch Rate stable. No recalibration needed.`;
+        }
+    }
+}
+
+// Set up event listeners for curve interactions
+function setupTradeoffCurveInteraction() {
+    const canvas = document.getElementById("tradeoff-curve-canvas");
+    if (!canvas) return;
+
+    const padding = { top: 15, right: 15, bottom: 30, left: 40 };
+
+    canvas.addEventListener("mousemove", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const displayWidth = canvas.clientWidth || 280;
+        const displayHeight = canvas.clientHeight || 150;
+        
+        const chartWidth = displayWidth - padding.left - padding.right;
+        const chartHeight = displayHeight - padding.top - padding.bottom;
+
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        const pts = getCurveCoordinates(currentSimulationDataset).map(pt => ({
+            threshold: pt.threshold,
+            fpr: pt.fpr,
+            tpr: pt.tpr,
+            x: padding.left + (pt.fpr * chartWidth),
+            y: padding.top + ((1 - pt.tpr) * chartHeight)
+        }));
+
+        let closestPt = null;
+        let minDistance = Infinity;
+
+        pts.forEach(pt => {
+            const dist = Math.sqrt((pt.x - mouseX) ** 2 + (pt.y - mouseY) ** 2);
+            if (dist < minDistance) {
+                minDistance = dist;
+                closestPt = pt;
+            }
+        });
+
+        if (minDistance < 30) {
+            canvas._hoverPoint = closestPt;
+            canvas.style.cursor = "pointer";
+        } else {
+            canvas._hoverPoint = null;
+            canvas.style.cursor = "default";
+        }
+        drawTradeoffCurve(canvas);
+    });
+
+    canvas.addEventListener("mouseleave", () => {
+        canvas._hoverPoint = null;
+        canvas.style.cursor = "default";
+        drawTradeoffCurve(canvas);
+    });
+
+    canvas.addEventListener("click", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const displayWidth = canvas.clientWidth || 280;
+        const displayHeight = canvas.clientHeight || 150;
+        
+        const chartWidth = displayWidth - padding.left - padding.right;
+        const chartHeight = displayHeight - padding.top - padding.bottom;
+
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        const pts = getCurveCoordinates(currentSimulationDataset).map(pt => ({
+            threshold: pt.threshold,
+            fpr: pt.fpr,
+            tpr: pt.tpr,
+            x: padding.left + (pt.fpr * chartWidth),
+            y: padding.top + ((1 - pt.tpr) * chartHeight)
+        }));
+
+        let closestPt = null;
+        let minDistance = Infinity;
+
+        pts.forEach(pt => {
+            const dist = Math.sqrt((pt.x - mouseX) ** 2 + (pt.y - mouseY) ** 2);
+            if (dist < minDistance) {
+                minDistance = dist;
+                closestPt = pt;
+            }
+        });
+
+        if (closestPt && minDistance < 30) {
+            const newMasterVal = closestPt.threshold;
+            const oldMaster = parseInt(masterSlider.value) || 1;
+            const ratio = newMasterVal / oldMaster;
+
+            masterSlider.value = newMasterVal;
+            deviceSlider.value = Math.max(10, Math.min(95, Math.round(parseInt(deviceSlider.value) * ratio)));
+            behavioralSlider.value = Math.max(10, Math.min(95, Math.round(parseInt(behavioralSlider.value) * ratio)));
+            transactionSlider.value = Math.max(10, Math.min(95, Math.round(parseInt(transactionSlider.value) * ratio)));
+
+            loggedDriftWarning = false;
+            updateSimulationMetrics();
+            generateAlertsFromDataset();
+
+            writeToAuditLog(`Threshold snapped to ${newMasterVal} via Tradeoff Curve calibration.`, "success");
+        }
+    });
 }
 
 // Setup Event Listeners for sliders
@@ -784,6 +1443,7 @@ function setupSliderListeners() {
     const sliders = [masterSlider, deviceSlider, behavioralSlider, transactionSlider];
     sliders.forEach(slider => {
         slider.addEventListener("input", () => {
+            loggedDriftWarning = false; // Reset warn lock to allow alert on slider changes
             updateSimulationMetrics();
             generateAlertsFromDataset();
         });
@@ -1094,9 +1754,22 @@ function initApp() {
     setupSliderListeners();
     setupFilterListeners();
     setupComplianceListeners();
+    setupTradeoffCurveInteraction();
     updateSimulationMetrics();
     generateAlertsFromDataset();
     startIntervalTimers();
+    
+    // Add window resize handler to redraw canvases
+    window.addEventListener("resize", () => {
+        const tradeoffCanvas = document.getElementById("tradeoff-curve-canvas");
+        if (tradeoffCanvas) drawTradeoffCurve(tradeoffCanvas);
+        
+        const driftCanvas = document.getElementById("drift-telemetry-canvas");
+        if (driftCanvas) {
+            const tprVal = parseFloat(metricTpr.textContent) || 88.0;
+            drawDriftTelemetry(driftCanvas, tprVal);
+        }
+    });
     
     writeToAuditLog("FraudLens Console session initialized.", "success");
     writeToAuditLog("Connected to mock MOZN Transaction Intelligence database.", "success");
@@ -1114,10 +1787,17 @@ window.__state = {
     set currentSimulationDataset(val) { currentSimulationDataset = val; },
     get globalFpr() { return globalFpr; },
     set globalFpr(val) { globalFpr = val; },
+    get activeSort() { return activeSort; },
+    set activeSort(val) { activeSort = val; },
+    get loggedDriftWarning() { return loggedDriftWarning; },
+    set loggedDriftWarning(val) { loggedDriftWarning = val; },
     updateSimulationMetrics,
     generateAlertsFromDataset,
     sortAndRenderQueue,
     renderHistory,
-    renderQueueHTML
+    renderQueueHTML,
+    getCurveCoordinates,
+    drawTradeoffCurve,
+    drawDriftTelemetry
 };
 

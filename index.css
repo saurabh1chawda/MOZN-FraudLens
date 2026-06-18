@@ -1362,6 +1362,14 @@ input[type="file"] {
     color: #60a5fa; /* DB write blue */
 }
 
+.terminal-row.warning-event {
+    color: var(--color-amber);
+}
+
+.terminal-row.success-event {
+    color: var(--color-green);
+}
+
 /* ==========================================================================
    Phase E: Enterprise Localization & Explainable AI (XAI) Suite Styles
    ========================================================================== */
@@ -1545,4 +1553,135 @@ input:checked + .switch-slider:before {
     color: var(--text-muted);
     cursor: not-allowed;
     box-shadow: none;
+}
+
+/* ==========================================================================
+   Phase F: Visual Tradeoff Analytics, Advanced Queue Sorting & Drift Telemetry
+   ========================================================================== */
+
+/* Segmented Queue Sorting Bar */
+.queue-sorting-bar {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 6px;
+    padding: 3px 8px;
+    margin: 8px 16px 4px 16px;
+    gap: 8px;
+}
+
+.sort-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.sort-pill-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.sort-pill-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.sort-pill-btn.active {
+    background: rgba(59, 130, 246, 0.12);
+    color: var(--color-blue);
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.1);
+}
+
+/* Tradeoff Chart Box */
+.tradeoff-chart-box {
+    margin-top: 15px;
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.chart-title {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-family: var(--font-heading);
+}
+
+.canvas-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    background: transparent;
+}
+
+/* Drift Analytics Card */
+.drift-analytics-card {
+    background: rgba(22, 30, 49, 0.55);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.drift-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.drift-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: var(--font-heading);
+}
+
+.drift-alert-badge {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: var(--color-amber);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    animation: pulse-border 2s infinite ease-in-out;
+}
+
+@keyframes pulse-border {
+    0% { opacity: 0.8; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.2); }
+    50% { opacity: 1; box-shadow: 0 0 8px 2px rgba(245, 158, 11, 0.4); }
+    100% { opacity: 0.8; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.2); }
+}
+
+.drift-footer-info {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 10px;
+}
+
+.drift-footer-info.warning-drift {
+    color: var(--color-amber);
+    font-weight: 500;
 }

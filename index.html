@@ -75,6 +75,15 @@
                         <button class="filter-btn" id="filter-transaction">Transaction</button>
                     </div>
 
+                    <!-- Queue Sorting Controls -->
+                    <div class="queue-sorting-bar" id="queue-sorting-controls">
+                        <span class="sort-label">Sort:</span>
+                        <button class="sort-pill-btn active" id="sort-priority" onclick="changeQueueSort('priority')">Priority</button>
+                        <button class="sort-pill-btn" id="sort-score" onclick="changeQueueSort('score')">Score</button>
+                        <button class="sort-pill-btn" id="sort-sla" onclick="changeQueueSort('sla')">SLA</button>
+                        <button class="sort-pill-btn" id="sort-layer" onclick="changeQueueSort('layer')">Layer</button>
+                    </div>
+
                     <!-- Scrollable Compact Alert List -->
                     <div class="alert-list-container" id="alert-list">
                         <!-- Compact cards will be dynamically injected here -->
@@ -230,11 +239,34 @@
                                         Calculating optimal threshold...
                                     </div>
                                 </div>
+
+                                <!-- Tradeoff Curve Canvas Box -->
+                                <div class="chart-container tradeoff-chart-box">
+                                    <span class="chart-title">📈 Precision-Recall Tradeoff Frontier</span>
+                                    <div class="canvas-wrapper">
+                                        <canvas id="tradeoff-curve-canvas" height="150"></canvas>
+                                    </div>
+                                </div>
+
                                 <div class="guardrail-alert hidden" id="guardrail-alert-box">
                                     <div class="alert-title">⚠️ Compliance Guardrail Warning</div>
                                     <div class="alert-content" id="guardrail-alert-content">
                                         Threshold selection violates regional guidelines.
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- 90-Day Drift Analytics Dashboard -->
+                            <div class="drift-analytics-card">
+                                <div class="drift-card-header">
+                                    <span class="drift-title">📡 90-Day Model Drift & Telemetry</span>
+                                    <span class="drift-alert-badge hidden" id="drift-warning-badge">⚠️ Telemetry Drift Warning</span>
+                                </div>
+                                <div class="canvas-wrapper">
+                                    <canvas id="drift-telemetry-canvas" height="120"></canvas>
+                                </div>
+                                <div class="drift-footer-info" id="drift-savings-roi">
+                                    Model Catch Rate stable. No recalibration needed.
                                 </div>
                             </div>
                         </div>
