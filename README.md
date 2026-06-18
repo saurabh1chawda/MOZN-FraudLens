@@ -12,7 +12,6 @@ Surfacing MOZN’s machine learning layer signals in a clean, triageable interfa
    * Sleek dark-mode interface designed with modern glassmorphic panels.
    * Tabbed workspace separating the **Triage Console** (Analysts) and **Threshold Simulator** (Risk Managers).
    * **Explainable AI (XAI) Engine**: Translates raw semicolon-delimited feature strings (e.g. `dev_fp_mismatch:0.92;vpn_active:1`) into plain-language indicators (e.g. `🚨 Device Fingerprint Mismatch (Value: 0.92)` and `🚨 VPN Connection Active`).
-   * Priority queue sorting that dynamically balances Risk Score and SLA urgency.
    * **Trigger Reasons**: Explicit badges displaying which layer threshold forced the alert (composite master vs. specific custom cutoffs).
    * **Value-Based SLA Allocation**:
      * Transactions < 1,000 currency units: **2 minutes (120s)**
@@ -21,6 +20,7 @@ Surfacing MOZN’s machine learning layer signals in a clean, triageable interfa
    * **Web Audio Breach Alarm**: Soft double-beep warning played via Web Audio API the instant a countdown timer breaches `0`.
    * **Scroll Position Memory**: Preserves vertical scroll position on alert triage actions to prevent container jump.
    * **Triage History & Undo (5 Mins)**: Allows analysts to undo triage decisions within 5 minutes, restoring the card and removing log database entries.
+   * **Segmented LHS Queue Sorting**: Toggle alert queue sorting on-click between Priority score, raw Risk Score, SLA Remaining, or group by Layer.
 
 2. **Threshold Intelligence & Business Impact Simulator**:
    * Interactive master threshold slider (0-100) and advanced accordion sliders for Device, Behavioral, and Transaction layers.
@@ -29,12 +29,20 @@ Surfacing MOZN’s machine learning layer signals in a clean, triageable interfa
    * **Compliance Guardrails**: Warns managers if the False Positive Rate exceeds CBUAE Consumer Protection guidelines (>30%).
    * **Threshold Recommendation Engine**: Computes the mathematically optimal composite score to minimize total operational and leakage costs.
 
-3. **Regulatory Compliance Mode & Audit Rationale Exporter**:
+3. **Interactive Precision-Recall Frontier (HTML5 Canvas)**:
+   * Draws solid Indigo Bezier tradeoff path, background grids, pulsing blue settings marker, and green optimal recommended star marker.
+   * Handles High-DPI / Retina screens cleanly using `devicePixelRatio` display style locking.
+   * Displays floating canvas tooltips on mouse move and snaps all threshold sliders proportionately on click.
+
+4. **90-Day Drift Analytics & Warning Telemetry**:
+   * Renders Catch Rate decay curve, active threshold line, and SAMA 70% limit line on a unified canvas.
+   * Triggers flashing telemetry alert badge, warning logs written in compliance terminal, and displays estimated calibration ROI savings.
+
+5. **Regulatory Compliance Mode & Audit Rationale Exporter**:
    * **Compliance Mode**: A strict toggle that locks policy commits if the False Positive Rate exceeds 30%.
-   * **Breach Justification locking**: Requires a justification text memo (min 20 characters) explaining deviation from regulatory guidelines before unlocking the commit button.
+   * **Justification locking**: Requires a justification text memo (min 20 characters) explaining deviation from regulatory guidelines before unlocking the commit button.
    * **Rationale Exporter**: Committing the threshold policy writes simulated SQL commands to the compliance terminal and triggers a browser download of `MOZN_Compliance_Rationale.txt` (a formal GCC compliance audit memo).
    * **LocalStorage Audit Trail**: Simulates a SQL database table `fraud_audit_log` inside `localStorage` to log triage decisions.
-
 
 ---
 

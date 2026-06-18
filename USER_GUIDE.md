@@ -16,6 +16,14 @@ This guide describes how to operate the MOZN FraudLens Console prototype interfa
   $$\text{Priority} = \text{Risk Score} \times \left(1 + \frac{\text{Elapsed Time}}{100}\right)$$
 * Let cards sit in the list to observe them re-sorting as they get closer to SLA limits.
 
+### LHS Queue Sorting Controls
+* Use the **Sort pills bar** (`Priority`, `Score`, `SLA`, `Layer`) located directly below the quick filters block inside the alert list panel to change the queue ordering criteria:
+  * **Priority**: Sorts by dynamic priority index (risk score balanced with timer urgency).
+  * **Score**: Sorts queue strictly by raw risk score descending.
+  * **SLA**: Sorts queue by remaining SLA countdown timer ascending, moving urgent alerts to the top.
+  * **Layer**: Groups alerts alphabetically by layer name (Device, Behavioral, Transaction), sorting by risk score descending within each layer group.
+* Sorting preserves the currently active selected card and leaves the Detail pane loaded.
+
 ### Processing & Explainable AI (XAI)
 * Click on any card in the left list to load its rich details in the right pane.
 * Read the **Trigger Badge** (e.g. `Device Custom Trigger (>=70)`) to understand *why* the card was flagged.
@@ -49,15 +57,27 @@ This guide describes how to operate the MOZN FraudLens Console prototype interfa
 * Expand the **Advanced Layer Thresholds** accordion to fine-tune individual Device, Behavioral, or Transaction cutoff scores.
 * Observe that metric values (Catch Rate, False Positive Rate, Fraud Loss, False Decline Cost) adjust live as you drag.
 
+### Interactive Precision-Recall Frontier Chart
+* View the **Precision-Recall Tradeoff Frontier** canvas to inspect risk tradeoffs:
+  * **Pulsing Blue Dot**: Current $(FPR, TPR)$ settings position based on live sliders.
+  * **Green Dot**: Mathematically optimal recommendations coordinate.
+* **Canvas Hover**: Moving the mouse over the curve shows tooltips with exact statistics: `Threshold: [X] | Catch: [Y]% | FP: [Z]%`.
+* **Click-to-Snap snap calibration**: Click directly on any point along the Indigo frontier curve to snap the Master composite threshold slider (and proportionately scale layer sliders) to that value instantly.
+
+### 90-Day Drift Analytics & Telemetry Dashboard
+* Monitor the **90-Day Model Drift & Telemetry** chart at the bottom of the simulator inputs column.
+* The canvas plots the Catch Rate decay curve over 90 days against SAMA compliance limit (70%) and your active composite threshold line.
+* If model drift degrades the Catch Rate below 70%:
+  * A flashing orange **Telemetry Drift Warning** badge appears at the header.
+  * The footer turns yellow and displays estimated leakage/friction savings from recalibrating to the optimal recommendation.
+  * A warning is printed to the Compliance Audit log.
+
 ### Running Custom CSV Simulations
 * Construct a CSV file with the following columns:
   `transaction_id, amount, currency, merchant_category, risk_score, is_fraud`
 * Click the **Choose Anonymized Bank CSV** button.
 * Select your CSV file (you can download the pre-made template by clicking **Template CSV** first).
-* The console will automatically:
-  1. Determine the dominant currency (AED vs. SAR) and swap metrics indicators.
-  2. Recompute model catch rates and financial costs based on your file’s actual fraud flags.
-  3. Load high-risk transactions from your uploaded CSV directly into the Triage Queue for processing.
+* The console will automatically recompute metrics, Optimal recommendation settings, and load high-risk transactions directly into the queue.
 
 ### Compliance Checks & Locking Workflow
 * Under CBUAE (UAE) guidelines, risk operations must minimize customer friction. If your selected threshold yields a False Positive Rate higher than **30%**, a red **Compliance Warning** banner will appear.
@@ -78,4 +98,3 @@ This guide describes how to operate the MOZN FraudLens Console prototype interfa
   2. Navigate to the **Application** tab (Application -> Local Storage -> file:// / http://localhost:5173).
   3. Select the key `fraud_audit_log` to view JSON database inserts containing transaction details, user actions, timestamps, and signal attributions.
 * Click **Clear Local Log** to empty the audit table.
-
