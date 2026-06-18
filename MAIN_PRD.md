@@ -78,7 +78,7 @@ Improve the console to solve all three pain points:
 ---
 
 ### STEP 6: Prioritize Features
-Using the High-Medium-Low (HML) framework to sequence features that maximize the goal:
+Establishing the High-Medium-Low (HML) framework to sequence features that maximize the goal:
 
 | Feature | Pain Point | Impact | Effort | Urgency | Status (MVP) |
 |---|---|---|---|---|---|
@@ -94,25 +94,45 @@ Using the High-Medium-Low (HML) framework to sequence features that maximize the
 | **Segmented Currency Selector & Peg** | P3 | HIGH | Medium | HIGH | MVP - Phase E (Implemented) |
 | **Compliance Mode Locking & Justification** | P3 | HIGH | HIGH | HIGH | MVP - Phase E (Implemented) |
 | **Compliance Rationale Memo Exporter** | P3 | HIGH | Medium | HIGH | MVP - Phase E (Implemented) |
+| **Interactive PR Curve Canvas** | P3 | HIGH | Medium | HIGH | MVP - Phase F (Implemented) |
+| **Queue Sorting Controls** | P1 | HIGH | Low | HIGH | MVP - Phase F (Implemented) |
+| **90-Day Drift Analytics Canvas** | P3 | HIGH | Medium | HIGH | MVP - Phase F (Implemented) |
 | **AI Rule Synthesizer (Moonshot)** | P3 | HIGH | HIGH | Low | Phase 3 (Out of Scope) |
 
 ---
 
-### STEP 7: Phase E - GCC Localization & Explainable AI Suite Specifications
+### STEP 7: Feature Specifications (Phase E & Phase F)
 
-#### 1. Explainable AI (XAI) Translation Engine
-* Surfaced risk signals are parsed from raw model key-value tags (e.g. `dev_fp_mismatch:0.92;vpn_active:1`).
-* Translation engine matches keys to a local translation map and displays clean, plain-language text to analysts (e.g. `🚨 Device Fingerprint Mismatch (Value: 0.92)`).
+#### A. Phase E - GCC Localization & Explainable AI Suite Specifications
 
-#### 2. Segmented Currency Selector & Pegged Converter
+##### 1. Explainable AI (XAI) Translation Engine
+* Surfaced risk signals are parsed from raw model key-value tags (e.g., `dev_fp_mismatch:0.92;vpn_active:1`).
+* Translation engine matches keys to a local translation map and displays clean, plain-language text to analysts (e.g., `🚨 Device Fingerprint Mismatch (Value: 0.92)` and `🚨 VPN Connection Active`).
+
+##### 2. Segmented Currency Selector & Pegged Converter
 * Pill-style sliding toggle selector switches active currency (AED/SAR).
 * Pegged exchange rate calculations (**1 AED = 1.02 SAR** and **1 SAR = 0.98 AED**) dynamically convert metrics, optimal recommendations, and alert list amounts.
 
-#### 3. Regulatory Compliance Mode & locked commits
+##### 3. Regulatory Compliance Mode & Locked Commits
 * When Compliance Mode is active and the False Positive Rate exceeds 30%:
   * Committing a threshold policy is locked.
   * Risk managers must input a compliance justification memo (minimum 20 characters) explaining deviation from CBUAE/SAMA guidelines to unlock commits.
 * Commits output simulated SQL commands in the terminal and download a structured formal bank audit memo: `MOZN_Compliance_Rationale.txt`.
+
+#### B. Phase F - Visual Tradeoff Analytics, Advanced Queue Sorting & Drift Telemetry Specifications
+
+##### 1. Interactive Precision-Recall Tradeoff Curve (Canvas Visualization)
+* Renders a premium, High-DPI scaled client-side HTML5 canvas charting the True Positive Rate (TPR) vs. False Positive Rate (FPR) tradeoff frontier.
+* Plots a blue settings marker showing the current slider configuration and a green star representing the mathematically optimal setting.
+* Features interactive cursor tracking with tooltips (displaying exact threshold, catch, and FP stats on hover) and click-to-snap controls that auto-calibrate the master and layer sliders.
+
+##### 2. LHS Alert Queue Advanced Sorting Controls
+* Implements a segmented pills bar below quick filters to change list sorting criteria.
+* Supports sorting by: Priority index (risk score dynamically weighted by timer urgency), raw Risk Score (descending), SLA Remaining (ascending), and Intelligence Layer (groups by Device, Behavioral, Transaction).
+
+##### 3. Historical Model Drift Dashboard & Telemetry
+* Renders a 90-day model catch rate decay trend line against the active threshold setting and SAMA 70% threshold compliance warning limit.
+* Features a flashing orange telemetry warning banner when the catch rate drops below the 70% limit, showing calculated calibration ROI savings in the active currency.
 
 ---
 
