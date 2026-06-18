@@ -92,7 +92,10 @@
                 <section class="panel simulator-panel">
                     <div class="panel-header">
                         <h2 class="panel-title">Threshold Intelligence & Simulator</h2>
-                        <span class="badge badge-blue">Risk Ops Panel</span>
+                        <div class="currency-selector-segment">
+                            <button class="currency-pill-btn active" id="currency-sar-btn" onclick="toggleCurrency('SAR')">SAR</button>
+                            <button class="currency-pill-btn" id="currency-aed-btn" onclick="toggleCurrency('AED')">AED</button>
+                        </div>
                     </div>
 
                     <!-- Spacious Two-Column Dashboard Layout -->
@@ -161,6 +164,26 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- Compliance Policy Governance -->
+                            <div class="compliance-governance-container">
+                                <div class="governance-toggle-row">
+                                    <span class="governance-title">🛡️ Enforce Regulatory Compliance Mode</span>
+                                    <label class="switch">
+                                        <input type="checkbox" id="compliance-mode-checkbox">
+                                        <span class="switch-slider"></span>
+                                    </label>
+                                </div>
+                                
+                                <!-- Justification text area block (hidden by default) -->
+                                <div class="compliance-justification-block hidden" id="compliance-justification-area">
+                                    <span class="justification-header">⚠️ SAMA / CBUAE Deviation Justification Required</span>
+                                    <textarea id="compliance-justification-input" placeholder="Explain why this threshold is selected despite exceeding CBUAE guidelines (min 20 characters)..." rows="3"></textarea>
+                                    <span class="justification-char-counter" id="justification-char-counter">0 / 20 characters</span>
+                                </div>
+                                
+                                <button class="commit-policy-btn" id="commit-policy-btn" onclick="commitThresholdPolicy()">Commit Threshold Policy</button>
                             </div>
                         </div>
 

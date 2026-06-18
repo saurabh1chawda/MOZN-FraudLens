@@ -90,11 +90,33 @@ Using the High-Medium-Low (HML) framework to sequence features that maximize the
 | **Compliance Warn (FPR > 30%)** | P3 | HIGH | Low | HIGH | MVP (Implemented) |
 | **LocalStorage SQL Audit Log** | P3 | HIGH | Low | HIGH | MVP (Implemented) |
 | **Visual CSV Template Button** | P1 | Medium | Low | Medium | MVP (Implemented) |
+| **Explainable AI (XAI) Parser** | P1 | HIGH | Medium | HIGH | MVP - Phase E (Implemented) |
+| **Segmented Currency Selector & Peg** | P3 | HIGH | Medium | HIGH | MVP - Phase E (Implemented) |
+| **Compliance Mode Locking & Justification** | P3 | HIGH | HIGH | HIGH | MVP - Phase E (Implemented) |
+| **Compliance Rationale Memo Exporter** | P3 | HIGH | Medium | HIGH | MVP - Phase E (Implemented) |
 | **AI Rule Synthesizer (Moonshot)** | P3 | HIGH | HIGH | Low | Phase 3 (Out of Scope) |
 
 ---
 
-### STEP 7: Measure Success
+### STEP 7: Phase E - GCC Localization & Explainable AI Suite Specifications
+
+#### 1. Explainable AI (XAI) Translation Engine
+* Surfaced risk signals are parsed from raw model key-value tags (e.g. `dev_fp_mismatch:0.92;vpn_active:1`).
+* Translation engine matches keys to a local translation map and displays clean, plain-language text to analysts (e.g. `🚨 Device Fingerprint Mismatch (Value: 0.92)`).
+
+#### 2. Segmented Currency Selector & Pegged Converter
+* Pill-style sliding toggle selector switches active currency (AED/SAR).
+* Pegged exchange rate calculations (**1 AED = 1.02 SAR** and **1 SAR = 0.98 AED**) dynamically convert metrics, optimal recommendations, and alert list amounts.
+
+#### 3. Regulatory Compliance Mode & locked commits
+* When Compliance Mode is active and the False Positive Rate exceeds 30%:
+  * Committing a threshold policy is locked.
+  * Risk managers must input a compliance justification memo (minimum 20 characters) explaining deviation from CBUAE/SAMA guidelines to unlock commits.
+* Commits output simulated SQL commands in the terminal and download a structured formal bank audit memo: `MOZN_Compliance_Rationale.txt`.
+
+---
+
+### STEP 8: Measure Success
 Tying features directly to key operational outcomes.
 
 1. **North Star Metric**:

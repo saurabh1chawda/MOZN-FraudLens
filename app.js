@@ -4,24 +4,25 @@
 
 // Default Sample Transaction Dataset (30-day simulation bank profile)
 const defaultSimulationData = [
-    { transaction_id: "TXN2001", amount: 4500, currency: "AED", merchant_category: "Remittance", risk_score: 87, is_fraud: 1, layer: "Transaction", signals: ["New Device", "VPN Detected", "Large Transfer to High-Risk Account"] },
-    { transaction_id: "TXN2002", amount: 150, currency: "AED", merchant_category: "Fuel", risk_score: 12, is_fraud: 0, layer: "Device", signals: ["No Anomaly"] },
-    { transaction_id: "TXN2003", amount: 12000, currency: "SAR", merchant_category: "Gold Souq", risk_score: 92, is_fraud: 1, layer: "Transaction", signals: ["Midnight Purchase", "Foreign Card", "Immediate Cash Out"] },
-    { transaction_id: "TXN2004", amount: 300, currency: "SAR", merchant_category: "Fuel", risk_score: 8, is_fraud: 0, layer: "Behavioral", signals: ["No Anomaly"] },
-    { transaction_id: "TXN2005", amount: 7500, currency: "AED", merchant_category: "Cross-Border", risk_score: 78, is_fraud: 1, layer: "Device", signals: ["Device Fingerprint Mismatch", "IP Location Spoofing"] },
-    { transaction_id: "TXN2006", amount: 120, currency: "SAR", merchant_category: "Food", risk_score: 15, is_fraud: 0, layer: "Transaction", signals: ["No Anomaly"] },
-    { transaction_id: "TXN2007", amount: 5500, currency: "AED", merchant_category: "Remittance", risk_score: 65, is_fraud: 0, layer: "Behavioral", signals: ["Unusual Remittance Velocity", "First-time Recipient"] },
-    { transaction_id: "TXN2008", amount: 1800, currency: "SAR", merchant_category: "Retail", risk_score: 42, is_fraud: 0, layer: "Behavioral", signals: ["Slight Velocity Deviation"] },
-    { transaction_id: "TXN2009", amount: 15000, currency: "SAR", merchant_category: "Gold Souq", risk_score: 88, is_fraud: 1, layer: "Transaction", signals: ["High-Value Gold Souq Transfer", "Unusually Large Amount"] },
-    { transaction_id: "TXN2010", amount: 9500, currency: "AED", merchant_category: "Cross-Border", risk_score: 82, is_fraud: 1, layer: "Device", signals: ["Dual Device Session", "UAE-KSA Fast Travel Anomaly"] },
-    { transaction_id: "TXN2011", amount: 200, currency: "AED", merchant_category: "Fuel", risk_score: 10, is_fraud: 0, layer: "Device", signals: ["No Anomaly"] },
-    { transaction_id: "TXN2012", amount: 6200, currency: "SAR", merchant_category: "Remittance", risk_score: 71, is_fraud: 1, layer: "Behavioral", signals: ["Rapid Account Takeover Indicators", "KSA Remittance Threshold Passed"] },
-    { transaction_id: "TXN2013", amount: 850, currency: "SAR", merchant_category: "Retail", risk_score: 22, is_fraud: 0, layer: "Transaction", signals: ["Standard Retail spend"] },
-    { transaction_id: "TXN2014", amount: 11000, currency: "AED", merchant_category: "Gold Souq", risk_score: 95, is_fraud: 1, layer: "Transaction", signals: ["Multiple Cards Swipe", "Gold Purchase in Dubai"] },
-    { transaction_id: "TXN2015", amount: 3500, currency: "AED", merchant_category: "Cross-Border", risk_score: 58, is_fraud: 0, layer: "Device", signals: ["Minor OS Version Mismatch"] },
-    { transaction_id: "TXN2016", amount: 7200, currency: "SAR", merchant_category: "Cross-Border", risk_score: 69, is_fraud: 0, layer: "Behavioral", signals: ["Rapid Succession Transfers KSA-UAE"] },
-    { transaction_id: "TXN2017", amount: 13000, currency: "AED", merchant_category: "Gold Souq", risk_score: 90, is_fraud: 1, layer: "Transaction", signals: ["Atypical High Value Purchase"] }
+    { transaction_id: "TXN2001", amount: 4500, currency: "AED", merchant_category: "Remittance", risk_score: 87, is_fraud: 1, layer: "Transaction", signals: ["dev_fp_mismatch:0.92;vpn_active:1;velocity_1h_high:1"] },
+    { transaction_id: "TXN2002", amount: 150, currency: "AED", merchant_category: "Fuel", risk_score: 12, is_fraud: 0, layer: "Device", signals: ["no_anomaly:1"] },
+    { transaction_id: "TXN2003", amount: 12000, currency: "SAR", merchant_category: "Gold Souq", risk_score: 92, is_fraud: 1, layer: "Transaction", signals: ["velocity_1h_high:1;multi_cards:1;loc_spoofing:0.89"] },
+    { transaction_id: "TXN2004", amount: 300, currency: "SAR", merchant_category: "Fuel", risk_score: 8, is_fraud: 0, layer: "Behavioral", signals: ["no_anomaly:1"] },
+    { transaction_id: "TXN2005", amount: 7500, currency: "AED", merchant_category: "Cross-Border", risk_score: 78, is_fraud: 1, layer: "Device", signals: ["dev_fp_mismatch:0.78;loc_spoofing:0.95"] },
+    { transaction_id: "TXN2006", amount: 120, currency: "SAR", merchant_category: "Food", risk_score: 15, is_fraud: 0, layer: "Transaction", signals: ["no_anomaly:1"] },
+    { transaction_id: "TXN2007", amount: 5500, currency: "AED", merchant_category: "Remittance", risk_score: 65, is_fraud: 0, layer: "Behavioral", signals: ["velocity_1h_high:1;multi_cards:0"] },
+    { transaction_id: "TXN2008", amount: 1800, currency: "SAR", merchant_category: "Retail", risk_score: 42, is_fraud: 0, layer: "Behavioral", signals: ["velocity_1h_high:0.6"] },
+    { transaction_id: "TXN2009", amount: 15000, currency: "SAR", merchant_category: "Gold Souq", risk_score: 88, is_fraud: 1, layer: "Transaction", signals: ["velocity_1h_high:1;large_amount:1"] },
+    { transaction_id: "TXN2010", amount: 9500, currency: "AED", merchant_category: "Cross-Border", risk_score: 82, is_fraud: 1, layer: "Device", signals: ["dev_fp_mismatch:1;loc_spoofing:0.82"] },
+    { transaction_id: "TXN2011", amount: 200, currency: "AED", merchant_category: "Fuel", risk_score: 10, is_fraud: 0, layer: "Device", signals: ["no_anomaly:1"] },
+    { transaction_id: "TXN2012", amount: 6200, currency: "SAR", merchant_category: "Remittance", risk_score: 71, is_fraud: 1, layer: "Behavioral", signals: ["velocity_1h_high:1;multi_cards:1"] },
+    { transaction_id: "TXN2013", amount: 850, currency: "SAR", merchant_category: "Retail", risk_score: 22, is_fraud: 0, layer: "Transaction", signals: ["no_anomaly:1"] },
+    { transaction_id: "TXN2014", amount: 11000, currency: "AED", merchant_category: "Gold Souq", risk_score: 95, is_fraud: 1, layer: "Transaction", signals: ["multi_cards:1;large_amount:1"] },
+    { transaction_id: "TXN2015", amount: 3500, currency: "AED", merchant_category: "Cross-Border", risk_score: 58, is_fraud: 0, layer: "Device", signals: ["dev_fp_mismatch:0.58"] },
+    { transaction_id: "TXN2016", amount: 7200, currency: "SAR", merchant_category: "Cross-Border", risk_score: 69, is_fraud: 0, layer: "Behavioral", signals: ["velocity_1h_high:1;loc_spoofing:0.69"] },
+    { transaction_id: "TXN2017", amount: 13000, currency: "AED", merchant_category: "Gold Souq", risk_score: 90, is_fraud: 1, layer: "Transaction", signals: ["large_amount:1"] }
 ];
+
 
 // Active State Variables
 let currentSimulationDataset = [...defaultSimulationData];
@@ -30,6 +31,107 @@ let triageHistory = [];
 let activeFilter = "all";
 let slaTimerInterval = null;
 let selectedAlertId = null; // Track currently selected transaction ID for detail pane
+let globalFpr = 0; // Track the False Positive Rate globally for compliance checks
+
+// XAI Plain-Language Translation Engine
+const XaiFeatureMap = {
+    "dev_fp_mismatch": "Device Fingerprint Mismatch",
+    "vpn_active": "VPN Connection Active",
+    "velocity_1h_high": "High 1-Hour Velocity",
+    "loc_spoofing": "Location Spoofing Detected",
+    "multi_cards": "Multiple Card Swipe Attempt",
+    "no_anomaly": "No Anomaly",
+    "large_amount": "Large Amount Detected"
+};
+
+function parseXaiSignals(signals) {
+    if (!signals) return [];
+    let rawTokens = [];
+    if (Array.isArray(signals)) {
+        signals.forEach(s => {
+            if (s) {
+                s.split(';').forEach(token => {
+                    if (token.trim()) rawTokens.push(token.trim());
+                });
+            }
+        });
+    } else if (typeof signals === 'string') {
+        signals.split(';').forEach(token => {
+            if (token.trim()) rawTokens.push(token.trim());
+        });
+    }
+
+    return rawTokens.map(token => {
+        const parts = token.split(':');
+        const key = parts[0].trim();
+        const val = parts[1] ? parts[1].trim() : null;
+        const label = XaiFeatureMap[key] || key;
+        if (val !== null && val !== undefined && val !== "1" && val !== "0" && val !== "true" && val !== "false") {
+            return `🚨 ${label} (Value: ${val})`;
+        } else {
+            return `🚨 ${label}`;
+        }
+    });
+}
+
+// Multi-Currency Exchange Rate Converter (1 AED = 1.02 SAR, 1 SAR = 0.98 AED)
+function getAmountInActiveCurrency(txn) {
+    if (txn.currency === activeCurrency) {
+        return txn.amount;
+    }
+    if (activeCurrency === "SAR" && txn.currency === "AED") {
+        return txn.amount * 1.02;
+    }
+    if (activeCurrency === "AED" && txn.currency === "SAR") {
+        return txn.amount * 0.98;
+    }
+    return txn.amount;
+}
+
+// Regulatory Compliance Mode Breach Check
+function runComplianceChecks() {
+    const complianceCheckbox = document.getElementById("compliance-mode-checkbox");
+    const justificationArea = document.getElementById("compliance-justification-area");
+    const commitBtn = document.getElementById("commit-policy-btn");
+    const justificationInput = document.getElementById("compliance-justification-input");
+    const charCounter = document.getElementById("justification-char-counter");
+
+    const complianceMode = complianceCheckbox ? complianceCheckbox.checked : false;
+
+    if (!complianceMode) {
+        if (justificationArea) justificationArea.classList.add("hidden");
+        if (commitBtn) commitBtn.disabled = false;
+        return;
+    }
+
+    if (globalFpr > 30) {
+        if (justificationArea) justificationArea.classList.remove("hidden");
+        const val = justificationInput ? justificationInput.value : "";
+        const len = val.length;
+        if (charCounter) charCounter.textContent = `${len} / 20 characters`;
+
+        if (len >= 20) {
+            if (commitBtn) commitBtn.disabled = false;
+        } else {
+            if (commitBtn) commitBtn.disabled = true;
+        }
+    } else {
+        if (justificationArea) justificationArea.classList.add("hidden");
+        if (commitBtn) commitBtn.disabled = false;
+    }
+}
+
+function setupComplianceListeners() {
+    const complianceCheckbox = document.getElementById("compliance-mode-checkbox");
+    const justificationInput = document.getElementById("compliance-justification-input");
+
+    if (complianceCheckbox) {
+        complianceCheckbox.addEventListener("change", runComplianceChecks);
+    }
+    if (justificationInput) {
+        justificationInput.addEventListener("input", runComplianceChecks);
+    }
+}
 
 // DOM Elements
 const masterSlider = document.getElementById("master-threshold-slider");
@@ -75,10 +177,23 @@ const filterTransactionBtn = document.getElementById("filter-transaction");
 
 let activeCurrency = "SAR";
 
-// Currency conversion formatting helper (SAR/AED exchange 1:1 roughly for demo)
-function formatCurrency(amount, currency = activeCurrency) {
-    return new Intl.NumberFormat('en-US', { style: 'decimal', maximumFractionDigits: 0 }).format(amount) + ` ${currency}`;
+// Currency conversion formatting helper with pegs
+function formatCurrency(amount, currency = activeCurrency, forceConvert = false) {
+    let finalAmount = amount;
+    let finalCurrency = currency;
+
+    if (forceConvert && currency !== activeCurrency) {
+        if (activeCurrency === "SAR" && currency === "AED") {
+            finalAmount = amount * 1.02;
+        } else if (activeCurrency === "AED" && currency === "SAR") {
+            finalAmount = amount * 0.98;
+        }
+        finalCurrency = activeCurrency;
+    }
+
+    return new Intl.NumberFormat('en-US', { style: 'decimal', maximumFractionDigits: 0 }).format(finalAmount) + ` ${finalCurrency}`;
 }
+
 
 // Write to compliance audit log
 function writeToAuditLog(eventText, type = "write") {
@@ -262,7 +377,7 @@ function renderDetailPane() {
         slaClass = "sla-critical";
     }
 
-    const formattedAmount = formatCurrency(alertItem.amount, alertItem.currency);
+    const formattedAmount = formatCurrency(alertItem.amount, alertItem.currency, true);
     const merchantCtx = getGccMerchantContext(alertItem.merchant_category, alertItem.currency);
 
     detailPane.innerHTML = `
@@ -315,7 +430,7 @@ function renderDetailPane() {
                 <div class="signals-section">
                     <h3 class="section-title">Contributing Risk Signals</h3>
                     <div class="signals-list">
-                        ${alertItem.signals.map(sig => `
+                        ${parseXaiSignals(alertItem.signals).map(sig => `
                             <div class="signal-badge-card">
                                 <span class="signal-icon">🚨</span>
                                 <div class="signal-info">
@@ -405,7 +520,7 @@ function renderQueueHTML() {
             slaClass = "sla-critical";
         }
 
-        const formattedAmount = formatCurrency(alertItem.amount, alertItem.currency);
+        const formattedAmount = formatCurrency(alertItem.amount, alertItem.currency, true);
 
         card.innerHTML = `
             <div class="alert-card-compact-left">
@@ -589,24 +704,27 @@ function updateSimulationMetrics() {
             isFlagged = true;
         }
 
+        const amt = getAmountInActiveCurrency(txn);
+
         if (txn.is_fraud === 1) {
             totalActualFraud++;
             if (isFlagged) {
                 caughtFraud++;
             } else {
-                missedFraudValue += txn.amount;
+                missedFraudValue += amt;
             }
         } else {
             totalLegitimate++;
             if (isFlagged) {
                 falsePositives++;
-                falseDeclineValue += txn.amount;
+                falseDeclineValue += amt;
             }
         }
     });
 
     const tpr = totalActualFraud > 0 ? (caughtFraud / totalActualFraud) * 100 : 0;
     const fpr = totalLegitimate > 0 ? (falsePositives / totalLegitimate) * 100 : 0;
+    globalFpr = fpr;
 
     // Projected daily workload (scale up sample to average daily GCC bank size)
     const projectedAlertsPerDay = Math.round((caughtFraud + falsePositives) * 5.4);
@@ -635,18 +753,20 @@ function updateSimulationMetrics() {
 
         currentSimulationDataset.forEach(txn => {
             let isFlagged = txn.risk_score >= s;
+            const amt = getAmountInActiveCurrency(txn);
             if (txn.is_fraud === 1) {
-                if (!isFlagged) testMissedFraudVal += txn.amount;
+                if (!isFlagged) testMissedFraudVal += amt;
             } else {
                 if (isFlagged) {
                     testFalsePositiveCount++;
-                    testFalseDeclineVal += txn.amount;
+                    testFalseDeclineVal += amt;
                 }
             }
         });
 
-        // Financial loss equation: Missed Fraud Cost + (False Decline Cost * 0.1 friction loss) + (Analyst time Cost: 150 SAR per alert)
-        const totalCost = testMissedFraudVal + (testFalseDeclineVal * 0.1) + (testFalsePositiveCount * 150);
+        // Financial loss equation: Missed Fraud Cost + (False Decline Cost * 0.1 friction loss) + (Analyst time Cost: 150 of active currency per alert)
+        const analystCost = activeCurrency === "SAR" ? 150 : 150 * 0.98;
+        const totalCost = testMissedFraudVal + (testFalseDeclineVal * 0.1) + (testFalsePositiveCount * analystCost);
         if (totalCost < minCost) {
             minCost = totalCost;
             optimalScore = s;
@@ -654,6 +774,9 @@ function updateSimulationMetrics() {
     }
 
     recContent.innerHTML = `Recommended master threshold: <strong>${optimalScore}</strong>. This minimizes combined fraud leakage and false decline friction. Estimated operational workload: <strong>${projectedAlertsPerDay} alerts/day</strong>.`;
+
+    // Execute compliance policy validation checks
+    runComplianceChecks();
 }
 
 // Setup Event Listeners for sliders
@@ -770,15 +893,22 @@ function parseCSVText(csvContent, fileName) {
         const categories = ["Remittance", "Gold Souq", "Fuel", "Cross-Border"];
         
         record.layer = layerTypes[record.risk_score % 3];
-        record.signals = [];
-
+        
         if (record.is_fraud === 1) {
-            record.signals.push("Anomalous Risk Factor Alert");
-            if (record.layer === "Device") record.signals.push("Atypical Device Identifier Detected");
-            else if (record.layer === "Behavioral") record.signals.push("Velocity Limit Passed");
-            else record.signals.push("High Risk Merchant Destination");
+            let sigs = [];
+            if (record.layer === "Device") {
+                sigs.push("dev_fp_mismatch:0.95");
+                sigs.push("vpn_active:1");
+            } else if (record.layer === "Behavioral") {
+                sigs.push("velocity_1h_high:1");
+                sigs.push("loc_spoofing:0.85");
+            } else {
+                sigs.push("multi_cards:1");
+                sigs.push("velocity_1h_high:1");
+            }
+            record.signals = [sigs.join(";")];
         } else {
-            record.signals.push("No severe anomalies");
+            record.signals = ["no_anomaly:1"];
         }
 
         parsedData.push(record);
@@ -797,6 +927,19 @@ function parseCSVText(csvContent, fileName) {
         }
     });
     activeCurrency = dominant;
+    
+    // Update currency selector active state visual pills
+    const sarBtn = document.getElementById("currency-sar-btn");
+    const aedBtn = document.getElementById("currency-aed-btn");
+    if (sarBtn && aedBtn) {
+        if (dominant === "SAR") {
+            sarBtn.classList.add("active");
+            aedBtn.classList.remove("active");
+        } else {
+            aedBtn.classList.add("active");
+            sarBtn.classList.remove("active");
+        }
+    }
 
     // Success: Update active simulator dataset
     currentSimulationDataset = parsedData;
@@ -808,6 +951,77 @@ function parseCSVText(csvContent, fileName) {
     updateSimulationMetrics();
     generateAlertsFromDataset();
 }
+
+// Currency Selector Toggle Handler
+window.toggleCurrency = function(curr) {
+    activeCurrency = curr;
+    
+    const sarBtn = document.getElementById("currency-sar-btn");
+    const aedBtn = document.getElementById("currency-aed-btn");
+    if (curr === "SAR") {
+        if (sarBtn) sarBtn.classList.add("active");
+        if (aedBtn) aedBtn.classList.remove("active");
+    } else {
+        if (aedBtn) aedBtn.classList.add("active");
+        if (sarBtn) sarBtn.classList.remove("active");
+    }
+    
+    updateSimulationMetrics();
+    renderQueueHTML();
+    writeToAuditLog(`Currency preference switched to: ${curr}`, "success");
+};
+
+// Commit threshold policy & compliance rationale exporter
+window.commitThresholdPolicy = function() {
+    const masterCutoff = parseInt(masterSlider.value);
+    const deviceCutoff = parseInt(deviceSlider.value);
+    const behavioralCutoff = parseInt(behavioralSlider.value);
+    const transactionCutoff = parseInt(transactionSlider.value);
+    
+    const complianceCheckbox = document.getElementById("compliance-mode-checkbox");
+    const complianceMode = complianceCheckbox ? complianceCheckbox.checked : false;
+    const justificationInput = document.getElementById("compliance-justification-input");
+    const justification = complianceMode && globalFpr > 30 ? (justificationInput ? justificationInput.value.trim() : "") : "N/A - Within regulatory threshold limit";
+    
+    const sqlStatement = `INSERT INTO threshold_justifications (operator, threshold, fpr, justification) VALUES ('saurabh_ops', ${masterCutoff}, ${globalFpr.toFixed(2)}, '${justification.replace(/'/g, "''")}');`;
+    
+    writeToAuditLog(`SQL Execute: ${sqlStatement}`, "write");
+    writeToAuditLog(`DB Success: Threshold policy committed successfully.`, "success");
+    
+    const docId = 'DOC-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    const timestamp = new Date().toISOString();
+    
+    const fileContent = `================================================================
+MOZN FRAUDLENS - REGULATORY COMPLIANCE RATIONALE DOCUMENT
+================================================================
+Document ID: ${docId}
+Export Timestamp: ${timestamp}
+Authorized Operator: saurabh_ops
+----------------------------------------------------------------
+THRESHOLD CONFIGURATION DETAILS:
+- Master Composite Threshold: ${masterCutoff}
+- Device Cutoff: ${deviceCutoff}
+- Behavioral Cutoff: ${behavioralCutoff}
+- Transaction Cutoff: ${transactionCutoff}
+----------------------------------------------------------------
+SIMULATED OPERATIONAL METRICS:
+- True Positive Rate (Catch): ${metricTpr.textContent}
+- False Positive Rate: ${metricFpr.textContent}${globalFpr > 30 ? ' (Violates CBUAE 30% Guideline)' : ''}
+- Monthly Fraud Loss: ${metricFraudLoss.textContent}
+- False Decline Cost (Friction): ${metricDeclineCost.textContent}
+----------------------------------------------------------------
+REGULATORY DEVIATION JUSTIFICATION:
+"${justification}"
+================================================================`;
+
+    const blob = new Blob([fileContent], { type: "text/plain;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "MOZN_Compliance_Rationale.txt";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
 
 // Web Audio breach alarm generator
 function triggerBreachAudio() {
@@ -879,6 +1093,7 @@ function startIntervalTimers() {
 function initApp() {
     setupSliderListeners();
     setupFilterListeners();
+    setupComplianceListeners();
     updateSimulationMetrics();
     generateAlertsFromDataset();
     startIntervalTimers();
@@ -897,6 +1112,8 @@ window.__state = {
     set triageHistory(val) { triageHistory = val; },
     get currentSimulationDataset() { return currentSimulationDataset; },
     set currentSimulationDataset(val) { currentSimulationDataset = val; },
+    get globalFpr() { return globalFpr; },
+    set globalFpr(val) { globalFpr = val; },
     updateSimulationMetrics,
     generateAlertsFromDataset,
     sortAndRenderQueue,

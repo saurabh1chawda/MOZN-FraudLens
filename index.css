@@ -1362,6 +1362,187 @@ input[type="file"] {
     color: #60a5fa; /* DB write blue */
 }
 
-.terminal-row.success-event {
-    color: #34d399; /* Green success */
+/* ==========================================================================
+   Phase E: Enterprise Localization & Explainable AI (XAI) Suite Styles
+   ========================================================================== */
+
+/* Currency Selector Pill */
+.currency-selector-segment {
+    display: flex;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    padding: 2px;
+    border-radius: 20px;
+    position: relative;
+}
+
+.currency-pill-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 18px;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.currency-pill-btn:hover {
+    color: var(--text-primary);
+}
+
+.currency-pill-btn.active {
+    background: var(--color-blue);
+    color: var(--text-primary);
+    box-shadow: 0 0 10px var(--color-blue-glow);
+}
+
+/* Compliance Governance Container */
+.compliance-governance-container {
+    background: rgba(22, 30, 49, 0.55);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 10px;
+}
+
+.governance-toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.governance-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Toggle Switch Styles */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 22px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: .3s;
+    border-radius: 34px;
+    border: 1px solid var(--border-color);
+}
+
+.switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--text-primary);
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .switch-slider {
+    background-color: var(--color-green);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+input:focus + .switch-slider {
+    box-shadow: 0 0 1px var(--color-green);
+}
+
+input:checked + .switch-slider:before {
+    transform: translateX(22px);
+}
+
+/* Compliance Justification Area */
+.compliance-justification-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 14px;
+}
+
+.compliance-justification-block.hidden {
+    display: none;
+}
+
+.justification-header {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-amber);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#compliance-justification-input {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 12px;
+    padding: 10px;
+    resize: none;
+    transition: var(--transition-fast);
+}
+
+#compliance-justification-input:focus {
+    outline: none;
+    border-color: var(--color-amber);
+    box-shadow: 0 0 5px var(--color-amber-glow);
+}
+
+.justification-char-counter {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: right;
+}
+
+/* Commit Policy Button */
+.commit-policy-btn {
+    background: var(--color-green);
+    border: 1px solid transparent;
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    box-shadow: 0 2px 5px var(--color-green-glow);
+}
+
+.commit-policy-btn:hover:not(:disabled) {
+    background: hsl(142, 72%, 48%);
+    box-shadow: 0 0 15px var(--color-green-glow);
+}
+
+.commit-policy-btn:disabled {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--border-color);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    box-shadow: none;
 }

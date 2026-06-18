@@ -8,10 +8,11 @@ Surfacing MOZN’s machine learning layer signals in a clean, triageable interfa
 
 ## 🎨 Key Features
 
-1. **Signal-Attributed Alert Queue**: 
-   * Sleek dark-mode interface designed with modern glassmorphism.
-   * Priority queue sorting that dynamic-balances Risk Score and SLA urgency.
-   * Tooltip attributions displaying exactly *which* signals triggered the card (e.g. Device Anomaly, IP Location Spoofing).
+1. **Signal-Attributed Triage Console (Master-Detail Layout)**: 
+   * Sleek dark-mode interface designed with modern glassmorphic panels.
+   * Tabbed workspace separating the **Triage Console** (Analysts) and **Threshold Simulator** (Risk Managers).
+   * **Explainable AI (XAI) Engine**: Translates raw semicolon-delimited feature strings (e.g. `dev_fp_mismatch:0.92;vpn_active:1`) into plain-language indicators (e.g. `🚨 Device Fingerprint Mismatch (Value: 0.92)` and `🚨 VPN Connection Active`).
+   * Priority queue sorting that dynamically balances Risk Score and SLA urgency.
    * **Trigger Reasons**: Explicit badges displaying which layer threshold forced the alert (composite master vs. specific custom cutoffs).
    * **Value-Based SLA Allocation**:
      * Transactions < 1,000 currency units: **2 minutes (120s)**
@@ -23,14 +24,17 @@ Surfacing MOZN’s machine learning layer signals in a clean, triageable interfa
 
 2. **Threshold Intelligence & Business Impact Simulator**:
    * Interactive master threshold slider (0-100) and advanced accordion sliders for Device, Behavioral, and Transaction layers.
-   * **Dynamic Currency Adaptability**: Analyzes uploaded CSV files to discover the dominant currency code (SAR vs. AED) and updates metric panels automatically.
-   * **Live Client-Side Metrics**: Calculates True Positive Rate (TPR), False Positive Rate (FPR), Monthly Fraud Loss, and False Decline Cost (Friction) instantly.
+   * **Segmented Currency Toggle & Pegged Converter**: Switch active reporting currency (AED vs. SAR) using pegged exchange rates (**1 AED = 1.02 SAR** and **1 SAR = 0.98 AED**) to convert and re-aggregate all transaction values, live metrics, and optimal recommendation calculations.
+   * **Live Client-Side Metrics**: Calculates True Positive Rate (TPR), False Positive Rate (FPR), Monthly Fraud Loss, and False Decline Cost (Friction) instantly in active currency.
    * **Compliance Guardrails**: Warns managers if the False Positive Rate exceeds CBUAE Consumer Protection guidelines (>30%).
    * **Threshold Recommendation Engine**: Computes the mathematically optimal composite score to minimize total operational and leakage costs.
 
-3. **Local Storage Compliance Audit Trail**:
-   * Simulates a SQL database table `fraud_audit_log` inside `localStorage`.
-   * Log Terminal prints SQL `INSERT` and `DELETE` events live during analyst operations.
+3. **Regulatory Compliance Mode & Audit Rationale Exporter**:
+   * **Compliance Mode**: A strict toggle that locks policy commits if the False Positive Rate exceeds 30%.
+   * **Breach Justification locking**: Requires a justification text memo (min 20 characters) explaining deviation from regulatory guidelines before unlocking the commit button.
+   * **Rationale Exporter**: Committing the threshold policy writes simulated SQL commands to the compliance terminal and triggers a browser download of `MOZN_Compliance_Rationale.txt` (a formal GCC compliance audit memo).
+   * **LocalStorage Audit Trail**: Simulates a SQL database table `fraud_audit_log` inside `localStorage` to log triage decisions.
+
 
 ---
 
