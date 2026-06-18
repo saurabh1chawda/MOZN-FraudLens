@@ -861,7 +861,7 @@ function setupCanvasDpr(canvas, ctx) {
     canvas.style.height = '';
     
     const displayWidth = canvas.clientWidth || canvas.getAttribute('width') || 300;
-    const displayHeight = canvas.clientHeight || canvas.getAttribute('height') || 150;
+    const displayHeight = canvas.clientHeight || canvas.getAttribute('height') || 220;
     
     if (canvas.width !== Math.round(displayWidth * dpr) || canvas.height !== Math.round(displayHeight * dpr)) {
         canvas.width = displayWidth * dpr;
@@ -884,13 +884,13 @@ function drawTradeoffCurve(canvas) {
     const { width, height } = setupCanvasDpr(canvas, ctx);
     ctx.clearRect(0, 0, width, height);
 
-    const padding = { top: 15, right: 15, bottom: 30, left: 40 };
+    const padding = { top: 20, right: 25, bottom: 35, left: 45 };
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
 
     // 1. Draw Gridlines & Axes Ticks
     ctx.lineWidth = 1;
-    ctx.font = "500 10px 'Segoe UI', system-ui, -apple-system, sans-serif";
+    ctx.font = "500 11px 'Segoe UI', system-ui, -apple-system, sans-serif";
 
     const alignedLeft = Math.round(padding.left) + 0.5;
     const alignedRight = Math.round(padding.left + chartWidth) + 0.5;
@@ -932,7 +932,7 @@ function drawTradeoffCurve(canvas) {
         ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
-        ctx.fillText(`${Math.round(tick * 100)}%`, x, alignedBottom + 6);
+        ctx.fillText(`${Math.round(tick * 100)}%`, x, alignedBottom + 8);
     });
 
     // 2. Draw Axes Lines
@@ -946,12 +946,12 @@ function drawTradeoffCurve(canvas) {
     ctx.stroke();
 
     ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-    ctx.font = "600 10px 'Segoe UI', system-ui, -apple-system, sans-serif";
+    ctx.font = "600 12px 'Segoe UI', system-ui, -apple-system, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("False Positive Rate (Friction)", padding.left + chartWidth / 2, padding.top + chartHeight + 20);
+    ctx.fillText("False Positive Rate (Friction)", padding.left + chartWidth / 2, padding.top + chartHeight + 26);
 
     ctx.save();
-    ctx.translate(10, padding.top + chartHeight / 2);
+    ctx.translate(12, padding.top + chartHeight / 2);
     ctx.rotate(-Math.PI / 2);
     ctx.fillText("Catch Rate (TPR)", 0, 0);
     ctx.restore();
@@ -1051,7 +1051,7 @@ function drawTradeoffCurve(canvas) {
     ctx.stroke();
 
     ctx.fillStyle = "#34d399"; // Emerald-400
-    ctx.font = "bold 10px 'Segoe UI', system-ui, -apple-system, sans-serif";
+    ctx.font = "bold 11px 'Segoe UI', system-ui, -apple-system, sans-serif";
     ctx.textAlign = "left";
     ctx.fillText("Optimal", optX + 8, optY - 2);
 
@@ -1144,7 +1144,7 @@ function drawDriftTelemetry(canvas, currentTprVal) {
     const { width, height } = setupCanvasDpr(canvas, ctx);
     ctx.clearRect(0, 0, width, height);
 
-    const padding = { top: 15, right: 15, bottom: 25, left: 35 };
+    const padding = { top: 20, right: 25, bottom: 35, left: 45 };
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
 
@@ -1154,7 +1154,7 @@ function drawDriftTelemetry(canvas, currentTprVal) {
     const alignedBottom = Math.round(padding.top + chartHeight) + 0.5;
 
     const yTicks = [0, 0.5, 0.7, 1];
-    ctx.font = "500 10px 'Segoe UI', system-ui, -apple-system, sans-serif";
+    ctx.font = "500 11px 'Segoe UI', system-ui, -apple-system, sans-serif";
     
     yTicks.forEach(tick => {
         const y = Math.round(padding.top + (1 - tick) * chartHeight) + 0.5;
@@ -1188,7 +1188,7 @@ function drawDriftTelemetry(canvas, currentTprVal) {
         ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
-        ctx.fillText(`${tick}d`, x, alignedBottom + 5);
+        ctx.fillText(`${tick}d`, x, alignedBottom + 8);
     });
 
     ctx.beginPath();
@@ -1212,9 +1212,9 @@ function drawDriftTelemetry(canvas, currentTprVal) {
 
     ctx.setLineDash([]);
     ctx.fillStyle = "#f87171"; // Coral red for visibility
-    ctx.font = "bold 9px 'Segoe UI', system-ui, -apple-system, sans-serif";
+    ctx.font = "bold 11px 'Segoe UI', system-ui, -apple-system, sans-serif";
     ctx.textAlign = "left";
-    ctx.fillText("SAMA Limit (70%)", alignedLeft + 5, y70 - 4);
+    ctx.fillText("SAMA Limit (70%)", alignedLeft + 8, y70 - 5);
 
     // 2. Draw Active composite threshold line
     const masterCutoff = parseInt(masterSlider.value);
@@ -1227,8 +1227,9 @@ function drawDriftTelemetry(canvas, currentTprVal) {
     ctx.stroke();
 
     ctx.fillStyle = "#60a5fa"; // Blue-400
-    ctx.font = "bold 9px 'Segoe UI', system-ui, -apple-system, sans-serif";
-    ctx.fillText(`Active Threshold (${masterCutoff})`, alignedLeft + chartWidth - 110, yThresh - 4);
+    ctx.font = "bold 11px 'Segoe UI', system-ui, -apple-system, sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText(`Active Threshold (${masterCutoff})`, alignedRight - 10, yThresh - 5);
 
     // 3. Compute 90-day Catch Rate (TPR) decay points
     const points = [];
@@ -1374,12 +1375,12 @@ function setupTradeoffCurveInteraction() {
     const canvas = document.getElementById("tradeoff-curve-canvas");
     if (!canvas) return;
 
-    const padding = { top: 15, right: 15, bottom: 30, left: 40 };
+    const padding = { top: 20, right: 25, bottom: 35, left: 45 };
 
     canvas.addEventListener("mousemove", (e) => {
         const rect = canvas.getBoundingClientRect();
         const displayWidth = canvas.clientWidth || 280;
-        const displayHeight = canvas.clientHeight || 150;
+        const displayHeight = canvas.clientHeight || 220;
         
         const chartWidth = displayWidth - padding.left - padding.right;
         const chartHeight = displayHeight - padding.top - padding.bottom;
@@ -1425,7 +1426,7 @@ function setupTradeoffCurveInteraction() {
     canvas.addEventListener("click", (e) => {
         const rect = canvas.getBoundingClientRect();
         const displayWidth = canvas.clientWidth || 280;
-        const displayHeight = canvas.clientHeight || 150;
+        const displayHeight = canvas.clientHeight || 220;
         
         const chartWidth = displayWidth - padding.left - padding.right;
         const chartHeight = displayHeight - padding.top - padding.bottom;
