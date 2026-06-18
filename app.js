@@ -855,6 +855,11 @@ function getCurveCoordinates(dataset) {
 // Set up Canvas backing store scaling for Retina screens
 function setupCanvasDpr(canvas, ctx) {
     const dpr = window.devicePixelRatio || 1;
+    
+    // Clear inline styles temporarily to let responsive CSS determine layout width/height
+    canvas.style.width = '';
+    canvas.style.height = '';
+    
     const displayWidth = canvas.clientWidth || canvas.getAttribute('width') || 300;
     const displayHeight = canvas.clientHeight || canvas.getAttribute('height') || 150;
     
@@ -862,6 +867,9 @@ function setupCanvasDpr(canvas, ctx) {
         canvas.width = displayWidth * dpr;
         canvas.height = displayHeight * dpr;
     }
+    
+    canvas.style.width = displayWidth + 'px';
+    canvas.style.height = displayHeight + 'px';
     
     ctx.resetTransform();
     ctx.scale(dpr, dpr);
@@ -882,58 +890,63 @@ function drawTradeoffCurve(canvas) {
 
     // 1. Draw Gridlines & Axes Ticks
     ctx.lineWidth = 1;
-    ctx.font = "9px sans-serif";
+    ctx.font = "500 10px 'Segoe UI', system-ui, -apple-system, sans-serif";
+
+    const alignedLeft = Math.round(padding.left) + 0.5;
+    const alignedRight = Math.round(padding.left + chartWidth) + 0.5;
+    const alignedTop = Math.round(padding.top) + 0.5;
+    const alignedBottom = Math.round(padding.top + chartHeight) + 0.5;
 
     // Y-axis gridlines (TPR: 0%, 25%, 50%, 75%, 100%)
     const yTicks = [0, 0.25, 0.5, 0.75, 1];
     yTicks.forEach(tick => {
-        const y = padding.top + (1 - tick) * chartHeight;
+        const y = Math.round(padding.top + (1 - tick) * chartHeight) + 0.5;
         
         ctx.beginPath();
         ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
         ctx.setLineDash([2, 2]);
-        ctx.moveTo(padding.left, y);
-        ctx.lineTo(padding.left + chartWidth, y);
+        ctx.moveTo(alignedLeft, y);
+        ctx.lineTo(alignedRight, y);
         ctx.stroke();
 
         ctx.setLineDash([]);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
-        ctx.fillText(`${Math.round(tick * 100)}%`, padding.left - 6, y);
+        ctx.fillText(`${Math.round(tick * 100)}%`, alignedLeft - 8, y);
     });
 
     // X-axis gridlines (FPR: 0%, 25%, 50%, 75%, 100%)
     const xTicks = [0, 0.25, 0.5, 0.75, 1];
     xTicks.forEach(tick => {
-        const x = padding.left + tick * chartWidth;
+        const x = Math.round(padding.left + tick * chartWidth) + 0.5;
 
         ctx.beginPath();
         ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
         ctx.setLineDash([2, 2]);
-        ctx.moveTo(x, padding.top);
-        ctx.lineTo(x, padding.top + chartHeight);
+        ctx.moveTo(x, alignedTop);
+        ctx.lineTo(x, alignedBottom);
         ctx.stroke();
 
         ctx.setLineDash([]);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
-        ctx.fillText(`${Math.round(tick * 100)}%`, x, padding.top + chartHeight + 6);
+        ctx.fillText(`${Math.round(tick * 100)}%`, x, alignedBottom + 6);
     });
 
     // 2. Draw Axes Lines
     ctx.beginPath();
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
     ctx.setLineDash([]);
     ctx.lineWidth = 1;
-    ctx.moveTo(padding.left, padding.top);
-    ctx.lineTo(padding.left, padding.top + chartHeight);
-    ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
+    ctx.moveTo(alignedLeft, alignedTop);
+    ctx.lineTo(alignedLeft, alignedBottom);
+    ctx.lineTo(alignedRight, alignedBottom);
     ctx.stroke();
 
-    ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-    ctx.font = "bold 9px sans-serif";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.font = "600 10px 'Segoe UI', system-ui, -apple-system, sans-serif";
     ctx.textAlign = "center";
     ctx.fillText("False Positive Rate (Friction)", padding.left + chartWidth / 2, padding.top + chartHeight + 20);
 
@@ -956,8 +969,10 @@ function drawTradeoffCurve(canvas) {
     // 4. Draw Bezier Curve
     if (canvasPoints.length > 1) {
         ctx.beginPath();
-        ctx.strokeStyle = "rgba(99, 102, 241, 0.85)";
-        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = "#818cf8"; // Indigo-400
+        ctx.lineWidth = 3;
+        ctx.shadowColor = "rgba(99, 102, 241, 0.4)";
+        ctx.shadowBlur = 8;
         
         ctx.moveTo(canvasPoints[0].x, canvasPoints[0].y);
         for (let i = 0; i < canvasPoints.length - 1; i++) {
@@ -967,6 +982,8 @@ function drawTradeoffCurve(canvas) {
         }
         ctx.lineTo(canvasPoints[canvasPoints.length - 1].x, canvasPoints[canvasPoints.length - 1].y);
         ctx.stroke();
+
+        ctx.shadowBlur = 0; // Reset shadow
     }
 
     // 5. Draw Optimal Threshold Dot
@@ -1021,20 +1038,20 @@ function drawTradeoffCurve(canvas) {
     const optY = padding.top + ((1 - optTpr) * chartHeight);
 
     ctx.beginPath();
-    ctx.fillStyle = "rgba(16, 185, 129, 0.25)";
+    ctx.fillStyle = "rgba(52, 211, 153, 0.25)"; // Emerald-400 tint
     ctx.arc(optX, optY, 10, 0, 2 * Math.PI);
     ctx.fill();
 
     ctx.beginPath();
-    ctx.fillStyle = "#10b981";
+    ctx.fillStyle = "#34d399"; // Emerald-400
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 1.5;
     ctx.arc(optX, optY, 6, 0, 2 * Math.PI);
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = "#10b981";
-    ctx.font = "bold 9px sans-serif";
+    ctx.fillStyle = "#34d399"; // Emerald-400
+    ctx.font = "bold 10px 'Segoe UI', system-ui, -apple-system, sans-serif";
     ctx.textAlign = "left";
     ctx.fillText("Optimal", optX + 8, optY - 2);
 
@@ -1063,12 +1080,12 @@ function drawTradeoffCurve(canvas) {
     const curY = padding.top + ((1 - curTpr) * chartHeight);
 
     ctx.beginPath();
-    ctx.fillStyle = "rgba(59, 130, 246, 0.25)";
+    ctx.fillStyle = "rgba(96, 165, 250, 0.25)"; // Blue-400 tint
     ctx.arc(curX, curY, 12, 0, 2 * Math.PI);
     ctx.fill();
 
     ctx.beginPath();
-    ctx.strokeStyle = "rgba(59, 130, 246, 0.85)";
+    ctx.strokeStyle = "#60a5fa"; // Blue-400
     ctx.lineWidth = 2;
     ctx.arc(curX, curY, 7, 0, 2 * Math.PI);
     ctx.stroke();
@@ -1083,31 +1100,31 @@ function drawTradeoffCurve(canvas) {
         const pt = canvas._hoverPoint;
 
         ctx.beginPath();
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
         ctx.lineWidth = 1.5;
         ctx.arc(pt.x, pt.y, 8, 0, 2 * Math.PI);
         ctx.stroke();
 
         const tooltipText = `Threshold: ${pt.threshold} | Catch: ${Math.round(pt.tpr * 100)}% | FP: ${Math.round(pt.fpr * 100)}%`;
-        ctx.font = "10px sans-serif";
+        ctx.font = "500 11px 'Segoe UI', system-ui, -apple-system, sans-serif";
         const textWidth = ctx.measureText(tooltipText).width;
 
-        let tooltipX = pt.x - textWidth / 2 - 6;
-        let tooltipY = pt.y - 25;
+        let tooltipX = pt.x - textWidth / 2 - 8;
+        let tooltipY = pt.y - 30;
 
         if (tooltipX < 5) tooltipX = 5;
-        if (tooltipX + textWidth + 12 > width) tooltipX = width - textWidth - 12;
+        if (tooltipX + textWidth + 16 > width) tooltipX = width - textWidth - 16;
         if (tooltipY < 5) tooltipY = pt.y + 15;
 
-        ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
-        ctx.strokeStyle = "rgba(99, 102, 241, 0.5)";
-        ctx.lineWidth = 1;
+        ctx.fillStyle = "rgba(15, 23, 42, 0.95)";
+        ctx.strokeStyle = "rgba(129, 140, 248, 0.8)"; // Indigo-400 border
+        ctx.lineWidth = 1.5;
 
         ctx.beginPath();
         if (ctx.roundRect) {
-            ctx.roundRect(tooltipX, tooltipY, textWidth + 12, 18, 4);
+            ctx.roundRect(tooltipX, tooltipY, textWidth + 16, 22, 6);
         } else {
-            ctx.rect(tooltipX, tooltipY, textWidth + 12, 18);
+            ctx.rect(tooltipX, tooltipY, textWidth + 16, 22);
         }
         ctx.fill();
         ctx.stroke();
@@ -1115,7 +1132,7 @@ function drawTradeoffCurve(canvas) {
         ctx.fillStyle = "#ffffff";
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
-        ctx.fillText(tooltipText, tooltipX + 6, tooltipY + 9);
+        ctx.fillText(tooltipText, tooltipX + 8, tooltipY + 11);
     }
 }
 
@@ -1131,78 +1148,87 @@ function drawDriftTelemetry(canvas, currentTprVal) {
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
 
+    const alignedLeft = Math.round(padding.left) + 0.5;
+    const alignedRight = Math.round(padding.left + chartWidth) + 0.5;
+    const alignedTop = Math.round(padding.top) + 0.5;
+    const alignedBottom = Math.round(padding.top + chartHeight) + 0.5;
+
     const yTicks = [0, 0.5, 0.7, 1];
-    ctx.font = "9px sans-serif";
+    ctx.font = "500 10px 'Segoe UI', system-ui, -apple-system, sans-serif";
     
     yTicks.forEach(tick => {
-        const y = padding.top + (1 - tick) * chartHeight;
+        const y = Math.round(padding.top + (1 - tick) * chartHeight) + 0.5;
         
         ctx.beginPath();
         ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
         ctx.setLineDash([2, 2]);
-        ctx.moveTo(padding.left, y);
-        ctx.lineTo(padding.left + chartWidth, y);
+        ctx.moveTo(alignedLeft, y);
+        ctx.lineTo(alignedRight, y);
         ctx.stroke();
 
         ctx.setLineDash([]);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
-        ctx.fillText(`${Math.round(tick * 100)}%`, padding.left - 6, y);
+        ctx.fillText(`${Math.round(tick * 100)}%`, alignedLeft - 8, y);
     });
 
     const xTicks = [0, 30, 60, 90];
     xTicks.forEach(tick => {
-        const x = padding.left + (tick / 90) * chartWidth;
+        const x = Math.round(padding.left + (tick / 90) * chartWidth) + 0.5;
         
         ctx.beginPath();
         ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
         ctx.setLineDash([2, 2]);
-        ctx.moveTo(x, padding.top);
-        ctx.lineTo(x, padding.top + chartHeight);
+        ctx.moveTo(x, alignedTop);
+        ctx.lineTo(x, alignedBottom);
         ctx.stroke();
 
         ctx.setLineDash([]);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
-        ctx.fillText(`${tick}d`, x, padding.top + chartHeight + 5);
+        ctx.fillText(`${tick}d`, x, alignedBottom + 5);
     });
 
     ctx.beginPath();
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-    ctx.moveTo(padding.left, padding.top);
-    ctx.lineTo(padding.left, padding.top + chartHeight);
-    ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+    ctx.setLineDash([]);
+    ctx.lineWidth = 1;
+    ctx.moveTo(alignedLeft, alignedTop);
+    ctx.lineTo(alignedLeft, alignedBottom);
+    ctx.lineTo(alignedRight, alignedBottom);
     ctx.stroke();
 
     // 1. Draw SAMA Compliance Limit (70% dashed red line)
-    const y70 = padding.top + (1 - 0.70) * chartHeight;
+    const y70 = Math.round(padding.top + (1 - 0.70) * chartHeight) + 0.5;
     ctx.beginPath();
-    ctx.strokeStyle = "rgba(239, 68, 68, 0.5)";
+    ctx.strokeStyle = "rgba(239, 68, 68, 0.7)";
     ctx.setLineDash([4, 4]);
     ctx.lineWidth = 1.5;
-    ctx.moveTo(padding.left, y70);
-    ctx.lineTo(padding.left + chartWidth, y70);
+    ctx.moveTo(alignedLeft, y70);
+    ctx.lineTo(alignedRight, y70);
     ctx.stroke();
 
     ctx.setLineDash([]);
-    ctx.fillStyle = "rgba(239, 68, 68, 0.85)";
+    ctx.fillStyle = "#f87171"; // Coral red for visibility
+    ctx.font = "bold 9px 'Segoe UI', system-ui, -apple-system, sans-serif";
     ctx.textAlign = "left";
-    ctx.fillText("SAMA Limit (70%)", padding.left + 5, y70 - 4);
+    ctx.fillText("SAMA Limit (70%)", alignedLeft + 5, y70 - 4);
 
     // 2. Draw Active composite threshold line
     const masterCutoff = parseInt(masterSlider.value);
-    const yThresh = padding.top + (1 - (masterCutoff / 100)) * chartHeight;
+    const yThresh = Math.round(padding.top + (1 - (masterCutoff / 100)) * chartHeight) + 0.5;
     ctx.beginPath();
-    ctx.strokeStyle = "rgba(59, 130, 246, 0.6)";
+    ctx.strokeStyle = "rgba(96, 165, 250, 0.8)";
     ctx.lineWidth = 1.2;
-    ctx.moveTo(padding.left, yThresh);
-    ctx.lineTo(padding.left + chartWidth, yThresh);
+    ctx.moveTo(alignedLeft, yThresh);
+    ctx.lineTo(alignedRight, yThresh);
     ctx.stroke();
 
-    ctx.fillStyle = "rgba(59, 130, 246, 0.9)";
-    ctx.fillText(`Active Threshold (${masterCutoff})`, padding.left + chartWidth - 110, yThresh - 4);
+    ctx.fillStyle = "#60a5fa"; // Blue-400
+    ctx.font = "bold 9px 'Segoe UI', system-ui, -apple-system, sans-serif";
+    ctx.fillText(`Active Threshold (${masterCutoff})`, alignedLeft + chartWidth - 110, yThresh - 4);
 
     // 3. Compute 90-day Catch Rate (TPR) decay points
     const points = [];
@@ -1222,8 +1248,12 @@ function drawDriftTelemetry(canvas, currentTprVal) {
 
     // 4. Draw Catch Rate decay curve path
     ctx.beginPath();
-    ctx.strokeStyle = isBreached ? "rgba(245, 158, 11, 0.9)" : "rgba(16, 185, 129, 0.9)";
-    ctx.lineWidth = 2.5;
+    const curveColor = isBreached ? "#fbbf24" : "#34d399";
+    ctx.strokeStyle = curveColor;
+    ctx.lineWidth = 3;
+    ctx.shadowColor = isBreached ? "rgba(251, 191, 36, 0.3)" : "rgba(52, 211, 153, 0.3)";
+    ctx.shadowBlur = 6;
+    
     ctx.moveTo(points[0].x, points[0].y);
     for (let i = 0; i < points.length - 1; i++) {
         const xc = (points[i].x + points[i + 1].x) / 2;
@@ -1233,14 +1263,17 @@ function drawDriftTelemetry(canvas, currentTprVal) {
     ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
     ctx.stroke();
 
+    // Reset shadow
+    ctx.shadowBlur = 0;
+
     // 5. Fill gradient under the curve
     const grad = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartHeight);
-    grad.addColorStop(0, isBreached ? "rgba(245, 158, 11, 0.15)" : "rgba(16, 185, 129, 0.15)");
+    grad.addColorStop(0, isBreached ? "rgba(251, 191, 36, 0.15)" : "rgba(52, 211, 153, 0.15)");
     grad.addColorStop(1, "rgba(0, 0, 0, 0)");
     
     ctx.beginPath();
     ctx.fillStyle = grad;
-    ctx.moveTo(points[0].x, padding.top + chartHeight);
+    ctx.moveTo(points[0].x, alignedBottom);
     ctx.lineTo(points[0].x, points[0].y);
     for (let i = 0; i < points.length - 1; i++) {
         const xc = (points[i].x + points[i + 1].x) / 2;
@@ -1248,7 +1281,7 @@ function drawDriftTelemetry(canvas, currentTprVal) {
         ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
     }
     ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
-    ctx.lineTo(points[points.length - 1].x, padding.top + chartHeight);
+    ctx.lineTo(points[points.length - 1].x, alignedBottom);
     ctx.closePath();
     ctx.fill();
 
