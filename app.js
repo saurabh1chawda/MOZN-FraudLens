@@ -29,7 +29,7 @@ let activeAlertsQueue = [];
 let triageHistory = [];
 let activeFilter = "all";
 let slaTimerInterval = null;
-let expandedCardId = null;
+let selectedAlertId = null; // Track currently selected transaction ID for detail pane
 
 // DOM Elements
 const masterSlider = document.getElementById("master-threshold-slider");
@@ -168,15 +168,186 @@ function sortAndRenderQueue() {
     renderQueueHTML();
 }
 
-// Toggle card expand state
-window.toggleCardExpand = function(transactionId) {
-    if (expandedCardId === transactionId) {
-        expandedCardId = null;
-    } else {
-        expandedCardId = transactionId;
+// Get SAMA / CBUAE compliant GCC Merchant Context dynamically based on category
+function getGccMerchantContext(category, currency) {
+    switch(category) {
+        case "Gold Souq":
+            return {
+                title: "GCC Gold Trade Alert Context",
+                text: `High-value physical metal acquisition. Subject to SAMA/CBUAE enhanced gold trade reporting rules. Transaction in ${currency}.`
+            };
+        case "Remittance":
+            return {
+                title: "GCC Expat Remittance Corridor Control",
+                text: "Subject to SAMA AML Circular 384. Verifying identity matching for digital remittance corridor."
+            };
+        case "Cross-Border":
+            return {
+                title: "CBUAE Cross-Border Transaction Surveillance",
+                text: "Cross-border velocity checks active. Flagged under regional cross-border payment security guidelines."
+            };
+        case "Fuel":
+            return {
+                title: "GCC Standard Local Merchant Profile",
+                text: "Low-risk local standard retail fuel merchant. Subject to routine cardholder presence verification."
+            };
+        default:
+            return {
+                title: "GCC Merchant Risk Control Profile",
+                text: `General commercial merchant. Monitored for SAMA compliance and fraud pattern matching in local currency ${currency}.`
+            };
     }
-    renderQueueHTML();
+}
+
+// Workspace Tab Switching
+window.switchTab = function(tabName) {
+    const tabTriage = document.getElementById("tab-triage");
+    const tabSimulator = document.getElementById("tab-simulator");
+    const viewTriage = document.getElementById("view-triage");
+    const viewSimulator = document.getElementById("view-simulator");
+    
+    if (!tabTriage || !tabSimulator || !viewTriage || !viewSimulator) return;
+
+    if (tabName === "triage") {
+        tabTriage.classList.add("active");
+        tabSimulator.classList.remove("active");
+        viewTriage.classList.remove("hidden");
+        viewSimulator.classList.add("hidden");
+        sortAndRenderQueue();
+    } else if (tabName === "simulator") {
+        tabTriage.classList.remove("active");
+        tabSimulator.classList.add("active");
+        viewTriage.classList.add("hidden");
+        viewSimulator.classList.remove("hidden");
+    }
+    
+    writeToAuditLog(`Workspace view switched to: ${tabName === 'triage' ? 'Triage Console' : 'Threshold Simulator'}`, "success");
 };
+
+// Render Rich Details Pane of selected alert
+function renderDetailPane() {
+    const detailPane = document.getElementById("triage-detail-pane");
+    if (!detailPane) return;
+
+    if (!selectedAlertId) {
+        detailPane.innerHTML = `
+            <div class="empty-detail-state">
+                <div class="empty-icon">🛡️</div>
+                <h3 class="empty-title">Queue Triage Console</h3>
+                <p class="empty-subtitle">Select a transaction from the queue to begin triage.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const alertItem = activeAlertsQueue.find(a => a.transaction_id === selectedAlertId);
+    if (!alertItem) {
+        selectedAlertId = null;
+        renderDetailPane();
+        return;
+    }
+
+    // Color coding for score gauge
+    let scoreClass = "score-low";
+    if (alertItem.risk_score >= 80) scoreClass = "score-high";
+    else if (alertItem.risk_score >= 60) scoreClass = "score-medium";
+
+    // SLA display
+    let slaClass = "sla-normal";
+    let slaText = `${Math.floor(alertItem.sla_remaining / 60)}:${String(alertItem.sla_remaining % 60).padStart(2, '0')} remaining`;
+    if (alertItem.sla_remaining <= 0) {
+        slaClass = "sla-critical";
+        slaText = "SLA BREACHED";
+    } else if (alertItem.sla_remaining <= 30) {
+        slaClass = "sla-critical";
+    }
+
+    const formattedAmount = formatCurrency(alertItem.amount, alertItem.currency);
+    const merchantCtx = getGccMerchantContext(alertItem.merchant_category, alertItem.currency);
+
+    detailPane.innerHTML = `
+        <div class="detail-container">
+            <!-- Header Section -->
+            <div class="detail-header">
+                <div class="detail-header-left">
+                    <span class="detail-txn-label">Transaction ID</span>
+                    <h2 class="detail-txn-id">${alertItem.transaction_id}</h2>
+                    <div class="detail-category-pill">
+                        <span class="category-dot"></span>
+                        <span class="category-name">${alertItem.merchant_category} (${alertItem.currency})</span>
+                    </div>
+                </div>
+                <div class="detail-header-right">
+                    <div class="large-score-gauge-container">
+                        <div class="large-score-gauge ${scoreClass}">
+                            <span class="score-num">${alertItem.risk_score}</span>
+                            <span class="score-label">Risk Score</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scrollable Content Area -->
+            <div class="detail-scroll-area">
+                <!-- Metadata Grid -->
+                <div class="metadata-grid">
+                    <div class="metadata-item">
+                        <span class="meta-label">Amount</span>
+                        <span class="meta-value highlight-amount">${formattedAmount}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="meta-label">Layer Risk</span>
+                        <span class="meta-value">
+                            <span class="layer-indicator layer-${alertItem.layer.toLowerCase()}">${alertItem.layer} Layer</span>
+                        </span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="meta-label">SLA Urgency</span>
+                        <span class="meta-value ${slaClass}">⏱️ ${slaText}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="meta-label">Trigger Reason</span>
+                        <span class="meta-value trigger-reason-badge">🔍 ${alertItem.trigger_reason || 'Composite Threshold'}</span>
+                    </div>
+                </div>
+
+                <!-- Contributing Signals -->
+                <div class="signals-section">
+                    <h3 class="section-title">Contributing Risk Signals</h3>
+                    <div class="signals-list">
+                        ${alertItem.signals.map(sig => `
+                            <div class="signal-badge-card">
+                                <span class="signal-icon">🚨</span>
+                                <div class="signal-info">
+                                    <span class="signal-text">${sig}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- GCC Merchant Context Box -->
+                <div class="merchant-context-box">
+                    <h3 class="section-title">${merchantCtx.title}</h3>
+                    <p class="merchant-context-text">${merchantCtx.text}</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="detail-actions">
+                <button class="action-btn btn-block large-btn" onclick="triageAlert('${alertItem.transaction_id}', 'Block')">
+                    <span class="btn-icon">🚫</span> Block Transaction
+                </button>
+                <button class="action-btn btn-review large-btn" onclick="triageAlert('${alertItem.transaction_id}', 'Review')">
+                    <span class="btn-icon">🔍</span> Send to Review
+                </button>
+                <button class="action-btn btn-allow large-btn" onclick="triageAlert('${alertItem.transaction_id}', 'Allow')">
+                    <span class="btn-icon">✅</span> Allow Transaction
+                </button>
+            </div>
+        </div>
+    `;
+}
 
 // Render queue alerts based on filters
 function renderQueueHTML() {
@@ -196,17 +367,30 @@ function renderQueueHTML() {
 
     if (filteredQueue.length === 0) {
         alertList.innerHTML = `<div class="empty-state-text">No pending alerts. Adjust thresholds or upload CSV to simulate more alerts.</div>`;
+        selectedAlertId = null;
+        renderDetailPane();
         return;
+    }
+
+    // Auto-select first alert if nothing selected or if selection no longer exists in filtered queue
+    if (filteredQueue.length > 0) {
+        const stillExists = filteredQueue.some(a => a.transaction_id === selectedAlertId);
+        if (!stillExists) {
+            selectedAlertId = filteredQueue[0].transaction_id;
+        }
     }
 
     filteredQueue.forEach(alertItem => {
         const card = document.createElement("div");
-        const isExpanded = expandedCardId === alertItem.transaction_id;
-        card.className = `alert-card${isExpanded ? ' expanded active-card' : ''}`;
+        const isSelected = selectedAlertId === alertItem.transaction_id;
+        card.className = `alert-card-compact${isSelected ? ' selected-card' : ''}`;
         card.id = `alert-card-${alertItem.transaction_id}`;
-        card.onclick = () => toggleCardExpand(alertItem.transaction_id);
+        card.onclick = () => {
+            selectedAlertId = alertItem.transaction_id;
+            renderQueueHTML(); // Update selected card state and details
+        };
 
-        // Color coding for score gauge
+        // Color coding for score badge
         let scoreClass = "score-low";
         if (alertItem.risk_score >= 80) scoreClass = "score-high";
         else if (alertItem.risk_score >= 60) scoreClass = "score-medium";
@@ -216,46 +400,21 @@ function renderQueueHTML() {
         let slaText = `${Math.floor(alertItem.sla_remaining / 60)}:${String(alertItem.sla_remaining % 60).padStart(2, '0')}`;
         if (alertItem.sla_remaining <= 0) {
             slaClass = "sla-critical";
-            slaText = "SLA BREACHED";
+            slaText = "BREACHED";
         } else if (alertItem.sla_remaining <= 30) {
             slaClass = "sla-critical";
         }
 
-        // GCC Category formatting
         const formattedAmount = formatCurrency(alertItem.amount, alertItem.currency);
 
         card.innerHTML = `
-            <div class="alert-card-top">
-                <div class="alert-card-meta">
-                    <span class="txn-id">${alertItem.transaction_id}</span>
-                    <span class="txn-amount">${formattedAmount} • ${alertItem.merchant_category}</span>
-                </div>
-                <div class="alert-card-right">
-                    <span class="sla-timer ${slaClass}">⏱️ ${slaText}</span>
-                    <div class="score-gauge ${scoreClass}">${alertItem.risk_score}</div>
-                </div>
+            <div class="alert-card-compact-left">
+                <span class="compact-txn-id">${alertItem.transaction_id}</span>
+                <span class="compact-amount">${formattedAmount} • ${alertItem.merchant_category}</span>
             </div>
-            
-            <div class="alert-card-expandable">
-                <div class="alert-card-divider"></div>
-                <div class="alert-card-details">
-                    <span class="layer-indicator layer-${alertItem.layer.toLowerCase()}">${alertItem.layer} Layer</span>
-                    <div class="trigger-reason-text">
-                        <span>🔍</span> ${alertItem.trigger_reason || 'Composite Trigger'}
-                    </div>
-                </div>
-
-                <!-- Signal attributions -->
-                <div class="alert-card-tooltip">
-                    <div class="tooltip-title">Triggering Signals:</div>
-                    ${alertItem.signals.map(sig => `<div class="tooltip-item">${sig}</div>`).join('')}
-                </div>
-
-                <div class="alert-card-actions">
-                    <button class="action-btn btn-block" onclick="event.stopPropagation(); triageAlert('${alertItem.transaction_id}', 'Block')">Block</button>
-                    <button class="action-btn btn-review" onclick="event.stopPropagation(); triageAlert('${alertItem.transaction_id}', 'Review')">Review</button>
-                    <button class="action-btn btn-allow" onclick="event.stopPropagation(); triageAlert('${alertItem.transaction_id}', 'Allow')">Allow</button>
-                </div>
+            <div class="alert-card-compact-right">
+                <span class="compact-sla ${slaClass}">⏱️ ${slaText}</span>
+                <div class="score-gauge ${scoreClass}">${alertItem.risk_score}</div>
             </div>
         `;
         alertList.appendChild(card);
@@ -263,15 +422,30 @@ function renderQueueHTML() {
 
     // Restore scroll position
     alertList.scrollTop = savedScrollTop;
+
+    // Render detail pane
+    renderDetailPane();
 }
 
-// Triage Action logic
+// Triage Action logic with auto-advance
 window.triageAlert = function(transactionId, decision) {
     const alertIndex = activeAlertsQueue.findIndex(a => a.transaction_id === transactionId);
     if (alertIndex === -1) return;
 
-    if (expandedCardId === transactionId) {
-        expandedCardId = null;
+    // Auto-advance selection logic within filtered queue
+    const filteredQueue = activeAlertsQueue.filter(alertItem => {
+        if (activeFilter === "all") return true;
+        return alertItem.layer.toLowerCase() === activeFilter.toLowerCase();
+    });
+
+    let nextAlertId = null;
+    const currentIndex = filteredQueue.findIndex(a => a.transaction_id === transactionId);
+    if (currentIndex !== -1 && filteredQueue.length > 1) {
+        if (currentIndex < filteredQueue.length - 1) {
+            nextAlertId = filteredQueue[currentIndex + 1].transaction_id;
+        } else {
+            nextAlertId = filteredQueue[currentIndex - 1].transaction_id;
+        }
     }
 
     const alertItem = activeAlertsQueue.splice(alertIndex, 1)[0];
@@ -287,6 +461,9 @@ window.triageAlert = function(transactionId, decision) {
     if (triageHistory.length > 10) {
         triageHistory.pop();
     }
+
+    // Update selected ID
+    selectedAlertId = nextAlertId;
 
     // SQLite / localStorage Mock DB Insert Command output
     const signalsJson = JSON.stringify(alertItem.signals);
@@ -326,6 +503,9 @@ window.undoTriage = function(transactionId) {
         ...restoredAlert,
         sla_remaining: restoredAlert.sla_remaining // Keep remaining SLA
     });
+
+    // Make restored transaction selected
+    selectedAlertId = transactionId;
 
     // Write undo delete SQL mock
     const sqlDelete = `DELETE FROM fraud_audit_log WHERE transaction_id = '${transactionId}';`;
